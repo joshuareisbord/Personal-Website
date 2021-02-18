@@ -3,6 +3,8 @@ import {Button, withStyles} from '@material-ui/core'
 import red from '@material-ui/core/colors/red'
 import DescriptionIcon from '@material-ui/icons/Description';
 
+import Resume from '../../img/JoshuaReisbord-Resume.pdf'
+
 
 const CustomButton = withStyles({
     root: {
@@ -14,15 +16,24 @@ const CustomButton = withStyles({
     }
 })(Button);
 
+
+
 class ResumeButton extends Component{
     constructor(props){
         super(props);
 
     }
 
+    openResume = () => {
+
+        window.open(Resume)
+    
+    
+    }
+
     render(){
         return (
-            <CustomButton size={this.props.size} startIcon={<DescriptionIcon/>} href={this.props.href}>Resume</CustomButton>
+            <CustomButton size={this.props.size} startIcon={<DescriptionIcon/>} onClick={this.openResume}>Resume</CustomButton>
         );
     }
 

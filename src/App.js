@@ -1,37 +1,43 @@
-import React, { Component } from 'react';
-import { Grid, makeStyles, Divider } from '@material-ui/core'
+import React from 'react';
+import { Grid, makeStyles, Paper } from '@material-ui/core'
+import Divider from '@material-ui/core/Divider'
 import './App.css';
 
 import About from './components/about'
 import Projects from './components/projects'
 
-class App extends Component{
+const useStyles = makeStyles((theme) => ({
 
-  render = () => {
+  root: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    flexDirection: 'column',
+  },
+  paper: {
+    padding: theme.spacing(2),
+    textAlign: 'center',
+  },
+
+}));
+
+  export default function App(){
+
+    const classes = useStyles();
 
     return (
-
-        <div>
-          <Grid container direction='column'justify='center' alignItems='center' classes={{root: {width: '100%'}}} spacing={6}>
-
-            <Grid item xs={8}>
-              <About></About>
-            </Grid>
-
-            <Grid item xs={10}>
-                <Projects></Projects>
-            </Grid>
-
+      <div className={classes.root}>
+        <Grid container direction='column'justify='center' alignItems='center' spacing={6}>
+          <Grid item>
+            <About/>
           </Grid>
-        </div>
-  
+          <Grid item>
+            <Projects/>
+          </Grid>
+        </Grid>
+        
+      </div>
+      
         
     );
 
   }
-
-
-
-}
-
-export default App;
