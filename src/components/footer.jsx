@@ -1,5 +1,5 @@
 import React from "react";
-import {Box, Container, IconButton, Typography} from "@material-ui/core";
+import {Grid, IconButton, Typography} from "@material-ui/core";
 
 import {constants} from "./constants";
 
@@ -12,54 +12,62 @@ import GitHubIcon from '@material-ui/icons/GitHub';
 function Footer() {
 
     return (
-        // <footer>
-        //     <Container maxWidth="lg">
-        //         <hr/>
-        //         <Box py={1} textAlign="center">
-        //             <Box>
-        //                 <IconButton target='_blank' color="inherit" aria-label="Facebook" href={constants.facebook}>
-        //                     <FacebookIcon />
-        //                 </IconButton>
-        //                 <IconButton target='_blank' color="inherit" aria-label="Twitter" href={constants.twitter}>
-        //                     <TwitterIcon />
-        //                 </IconButton>
-        //                 <IconButton target='_blank' color="inherit" aria-label="Instagram" href={constants.instagram}>
-        //                     <InstagramIcon />
-        //                 </IconButton>
-        //                 <IconButton target='_blank' color="inherit" aria-label="LinkedIn" href={constants.linkedin}>
-        //                     <LinkedInIcon />
-        //                 </IconButton>
-        //                 <IconButton target='_blank' color="inherit" aria-label="GitHub" href={constants.github}>
-        //                     <GitHubIcon />
-        //                 </IconButton>
-        //             </Box>
-        //             <Typography color="textSecondary" component="p" variant="caption" gutterBottom={false}>© Joshua Reisbord 2021.</Typography>
-        //         </Box>
-        //     </Container>
-        // </footer>
 
         <footer>
-            <Container maxWidth="lg">
-                <hr/>
-                    <Box>
+
+            <hr/>
+
+            <Grid
+                container
+                direction="column"
+                justifyContent="center"
+                alignItems="center"
+            >
+
+                {/*Icon Buttons*/}
+                <Grid
+                    container
+                    item
+                    direction="row"
+                    justifyContent="center"
+                    alignItems="center"
+                >
+                    <Grid item>
                         <IconButton target='_blank' color="inherit" aria-label="Facebook" href={constants.facebook}>
                             <FacebookIcon />
                         </IconButton>
+                    </Grid>
+                    <Grid item>
                         <IconButton target='_blank' color="inherit" aria-label="Twitter" href={constants.twitter}>
                             <TwitterIcon />
                         </IconButton>
+                    </Grid>
+                    <Grid item>
                         <IconButton target='_blank' color="inherit" aria-label="Instagram" href={constants.instagram}>
                             <InstagramIcon />
                         </IconButton>
+                    </Grid>
+                    <Grid item>
                         <IconButton target='_blank' color="inherit" aria-label="LinkedIn" href={constants.linkedin}>
                             <LinkedInIcon />
                         </IconButton>
+                    </Grid>
+                    <Grid item>
                         <IconButton target='_blank' color="inherit" aria-label="GitHub" href={constants.github}>
                             <GitHubIcon />
                         </IconButton>
-                    </Box>
-                    <Typography color="textSecondary" component="p" variant="caption" gutterBottom={false}>© Joshua Reisbord 2021.</Typography>
-            </Container>
+                    </Grid>
+                </Grid>
+
+                {/*Copyright*/}
+                <Grid item>
+                    <Typography variant="body2" color="textSecondary" align="center">
+                        {constants.copyright}
+                    </Typography>
+                </Grid>
+
+            </Grid>
+
         </footer>
     );
 }
