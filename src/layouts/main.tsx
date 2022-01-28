@@ -1,5 +1,3 @@
-import React from 'react';
-
 import ROUTES from '../constants/routes';
 
 import Home from '../pages/home';

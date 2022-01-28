@@ -1,4 +1,3 @@
-import axios, { AxiosRequestConfig } from 'axios';
 import { collection, getDocs } from 'firebase/firestore';
 import React, { useEffect, useState } from 'react';
 import SECTIONS from '../constants/sections';
@@ -82,7 +81,7 @@ export const Projects: React.FC = () => {
                         }
                         
                     </div>
-                    <div className="text-center"><a className="md:hidden inline-block py-2 px-6 rounded-l-xl rounded-t-xl bg-green-600 hover:bg-green-700 text-gray-50 font-bold leading-loose transition duration-200" href="#">View More Projects</a></div>
+                    <div className="text-center"><a className="md:hidden inline-block py-2 px-6 rounded-l-xl rounded-t-xl bg-green-600 hover:bg-green-700 text-gray-50 font-bold leading-loose transition duration-200" href="https://github.com/joshuareisbord">View More Projects</a></div>
                 </div>
             </div>
         </section>

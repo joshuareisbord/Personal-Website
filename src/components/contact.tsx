@@ -31,10 +31,10 @@ export const Contact: React.FC = () => {
                             <div className="py-12 lg:py-20 w-full rounded bg-gray-800 shadow-md text-center">
                                 <h3 className="mb-8 lg:mb-20 text-3xl font-bold font-heading text-white">Socials</h3>
                                 <div className="flex justify-center">
-                                    <a className="mr-3" href="#">
+                                    <a className="mr-3" href="https://github.com/joshuareisbord">
                                         <img className="w-auto h-8" src={GITHUB} alt="" />
                                     </a>
-                                    <a href="#">
+                                    <a href="https://www.linkedin.com/in/joshuareisbord/">
                                         <img className="w-auto h-8" src={LINKEDIN} alt="" />
                                     </a>
                                 </div>
