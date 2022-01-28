@@ -7,8 +7,11 @@ export const Home: React.FC = () => {
   return (
       <div>
           <Header />
+          <hr/>
           <About />
+          <hr/>
           <Projects />
+          <hr/>
           <Contact />
       </div>
   );
