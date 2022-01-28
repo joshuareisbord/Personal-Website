@@ -12,8 +12,8 @@ export const Header: React.FC = () => {
 
     return (
 
-        <section className="relative bg-gray-900 overflow-hidden" id={SECTIONS.HOME}>
-            <div className="relative pt-12 lg:pt-20 pb-20 z-10">
+        <section className="flex flex-col content-center relative bg-gray-900 overflow-hidden min-h-screen" id={SECTIONS.HOME}>
+            <div className="m-auto relative pt-12 lg:pt-20 pb-20 z-10">
                 <div className="container mx-auto px-4">
                     <div className="flex flex-wrap -mx-4">
                         <div className="w-full lg:w-1/2 px-4 mb-12 lg:mb-0 flex items-center">
@@ -34,14 +34,14 @@ export const Header: React.FC = () => {
                                 </div>
                             </div>
                         </div>
-                        <div className="w-full lg:w-1/2 px-4">
+                        <div className="hidden md:block w-full lg:w-1/2 px-4">
                             <div className="flex flex-wrap lg:mb-4 lg:ml-6">
-                                <img className="w-full md:w-1/2 lg:w-1/3 h-64 p-2 object-cover rounded-4xl lg:rounded-bl-none" src={`https://firebasestorage.googleapis.com/v0/b/personal-website-f17c6.appspot.com/o/Riding%20Donkey.jpeg?alt=media&token=d4e32dd3-d186-4180-a562-c27187e9e6c5`} alt="" />
-                                <img className="w-full md:w-1/2 lg:w-2/3 h-64 p-2 object-cover rounded-4xl lg:rounded-bl-none" src={`https://firebasestorage.googleapis.com/v0/b/personal-website-f17c6.appspot.com/o/Josh%20and%20Lena%20Versailles.jpeg?alt=media&token=3bcbc4eb-4ce0-433d-9512-ebc5e163c061`} alt="" />
+                                <img className="w-full md:w-1/2 lg:w-1/3 h-64 p-2 object-cover hover:scale-105" src={`https://firebasestorage.googleapis.com/v0/b/personal-website-f17c6.appspot.com/o/Riding%20Donkey.jpeg?alt=media&token=d4e32dd3-d186-4180-a562-c27187e9e6c5`} alt="" />
+                                <img className="w-full md:w-1/2 lg:w-2/3 h-64 p-2 object-cover hover:scale-105" src={`https://firebasestorage.googleapis.com/v0/b/personal-website-f17c6.appspot.com/o/Josh%20and%20Lena%20Versailles.jpeg?alt=media&token=3bcbc4eb-4ce0-433d-9512-ebc5e163c061`} alt="" />
                             </div>
                             <div className="flex flex-wrap lg:mb-4 lg:mr-6">
-                                <img className="w-full md:w-1/2 lg:w-2/3 h-64 p-2 object-cover rounded-4xl lg:rounded-br-none" src={`https://firebasestorage.googleapis.com/v0/b/personal-website-f17c6.appspot.com/o/Hardy%20Island%203.JPG?alt=media&token=00b25b67-bcd7-4122-8134-b024c172545b`} alt="" />
-                                <img className="w-full md:w-1/2 lg:w-1/3 h-64 p-2 object-cover rounded-4xl lg:rounded-bl-none" src={`https://firebasestorage.googleapis.com/v0/b/personal-website-f17c6.appspot.com/o/Formal%20Headshot.JPG?alt=media&token=d706658c-a50b-4986-b6ef-9dcb65a53cad`} alt="" />
+                                <img className="w-full md:w-1/2 lg:w-2/3 h-64 p-2 object-cover hover:scale-105" src={`https://firebasestorage.googleapis.com/v0/b/personal-website-f17c6.appspot.com/o/Hardy%20Island%203.JPG?alt=media&token=00b25b67-bcd7-4122-8134-b024c172545b`} alt="" />
+                                <img className="w-full md:w-1/2 lg:w-1/3 h-64 p-2 object-cover hover:scale-105" src={`https://firebasestorage.googleapis.com/v0/b/personal-website-f17c6.appspot.com/o/Formal%20Headshot.JPG?alt=media&token=d706658c-a50b-4986-b6ef-9dcb65a53cad`} alt="" />
                             </div>
                         </div>
                     </div>
