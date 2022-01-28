@@ -14,11 +14,9 @@ export const About: React.FC = () => {
                         Bukkit, to enable plugin usage. Through this, I learned the extreme basics of server 
                         administration, Java development, and the Linux command line`,
         
-        ABOUT_BLURB_2: `When I first entered university, I was unsure exactly what I wanted to do. I was scared 
-                        off by the idea of computer science because I thought I did not have what it took, so I 
-                        pursued a degree in economics. I quickly found that path was not for me, so I did what I 
-                        should have done from the start, pursued computer science. The rest is history, and I 
-                        have not looked back since.`
+        ABOUT_BLURB_2: `When I first entered university I pursued a degree in economics. However, I quickly found that 
+                        path was not for me, so I did what I should have done from the start, pursued computer science. 
+                        The rest is history, and I have not looked back since.`
     }
 
     return (
