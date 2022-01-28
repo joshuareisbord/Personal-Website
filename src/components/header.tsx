@@ -36,8 +36,8 @@ export const Header: React.FC = () => {
                         </div>
                         <div className="w-full lg:w-1/2 px-4">
                             <div className="flex flex-wrap lg:mb-4 lg:ml-6">
-                                <img className="w-full md:w-1/2 lg:w-1/3 h-64 p-2 object-cover rounded-4xl lg:rounded-br-none" src={`https://firebasestorage.googleapis.com/v0/b/personal-website-f17c6.appspot.com/o/Josh%20and%20Lena%20Versailles.jpeg?alt=media&token=3bcbc4eb-4ce0-433d-9512-ebc5e163c061`} alt="" />
-                                <img className="w-full md:w-1/2 lg:w-2/3 h-64 p-2 object-cover rounded-4xl lg:rounded-bl-none" src={`https://firebasestorage.googleapis.com/v0/b/personal-website-f17c6.appspot.com/o/Hardy%20Island%202.JPG?alt=media&token=e0b79569-58fc-4633-af46-25dbd2edc188`} alt="" />
+                                <img className="w-full md:w-1/2 lg:w-1/3 h-64 p-2 object-cover rounded-4xl lg:rounded-bl-none" src={`https://firebasestorage.googleapis.com/v0/b/personal-website-f17c6.appspot.com/o/Riding%20Donkey.jpeg?alt=media&token=d4e32dd3-d186-4180-a562-c27187e9e6c5`} alt="" />
+                                <img className="w-full md:w-1/2 lg:w-2/3 h-64 p-2 object-cover rounded-4xl lg:rounded-bl-none" src={`https://firebasestorage.googleapis.com/v0/b/personal-website-f17c6.appspot.com/o/Josh%20and%20Lena%20Versailles.jpeg?alt=media&token=3bcbc4eb-4ce0-433d-9512-ebc5e163c061`} alt="" />
                             </div>
                             <div className="flex flex-wrap lg:mb-4 lg:mr-6">
                                 <img className="w-full md:w-1/2 lg:w-2/3 h-64 p-2 object-cover rounded-4xl lg:rounded-br-none" src={`https://firebasestorage.googleapis.com/v0/b/personal-website-f17c6.appspot.com/o/Hardy%20Island%203.JPG?alt=media&token=00b25b67-bcd7-4122-8134-b024c172545b`} alt="" />
