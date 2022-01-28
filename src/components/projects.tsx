@@ -16,7 +16,9 @@ const ProjectElement: React.FC<{ project: Project, img: string }> = ({ project, 
                 <div className="absolute inset-0 p-6 flex flex-col items-start">
                     <p className=" mb-1 text-2xl lg:text-2xl text-white font-bold">{project.name}</p>
                     <p className="mb-auto text-sm lg:text-1xl text-white font-bold">{project.desc}</p>
-                    <a className="inline-block py-2 px-4 border-2 border-green-500 hover:border-white bg-transparent text-gray-50 hover:bg-white hover:text-gray-900 transition duration-200 rounded-l-xl rounded-t-xl font-bold leading-loose" href={project.link}>View Project</a>
+                    <a className="inline-block py-2 px-4 border-2 border-green-500 hover:border-white bg-transparent text-gray-50 hover:bg-white hover:text-gray-900 transition duration-200 rounded-l-xl rounded-t-xl font-bold leading-loose" href={project.link} target="_blank" rel="noopener noreferrer">
+                        View Project
+                    </a>
                 </div>
             </div>
         </div>
@@ -66,7 +68,9 @@ export const Projects: React.FC = () => {
                         <span className="text-green-600 font-bold">What have I been working on?</span>
                         <h2 className="text-4xl lg:text-5xl font-bold font-heading text-white">Noteable Projects</h2>
                     </div>
-                    <a className="hidden md:inline-block py-2 px-6 rounded-l-xl rounded-t-xl bg-green-600 hover:bg-green-700 text-gray-50 font-bold leading-loose transition duration-200" href="https://github.com/joshuareisbord">View More Projects</a>
+                    <a className="hidden md:inline-block py-2 px-6 rounded-l-xl rounded-t-xl bg-green-600 hover:bg-green-700 text-gray-50 font-bold leading-loose transition duration-200" href="https://github.com/joshuareisbord" target="_blank" rel="noopener noreferrer">
+                        View More Projects
+                    </a>
                 </div>
                 <div className="flex flex-wrap -mx-4 mb-4">
 
@@ -82,7 +86,7 @@ export const Projects: React.FC = () => {
                 </div>
                 <div className="max-w-screen py-10 mx-auto lg:mx-0 text-center">
                     <div>
-                        <a className="md:hidden inline-block mb-3 lg:mb-0 lg:mr-3 w-2/3 lg:w-1/3 py-2 px-6 leading-loose bg-green-600 hover:bg-green-700 text-white font-semibold rounded-l-xl rounded-t-xl transition duration-200" href="https://github.com/joshuareisbord">View More Projects</a>
+                        <a className="md:hidden inline-block mb-3 lg:mb-0 lg:mr-3 w-2/3 lg:w-1/3 py-2 px-6 leading-loose bg-green-600 hover:bg-green-700 text-white font-semibold rounded-l-xl rounded-t-xl transition duration-200" href="https://github.com/joshuareisbord" target="_blank" rel="noopener noreferrer">View More Projects</a>
                         <a className="          inline-block mb-3 lg:mb-0 lg:mr-3 w-2/3 lg:w-1/3 py-2 px-6 leading-loose text-white font-semibold bg-gray-900 border-2 border-gray-700 hover:border-gray-600 rounded-l-xl rounded-t-xl transition duration-200" href={`#${SECTIONS.CONTACT}`}>Contact</a>
                     </div>
                 </div>
