@@ -25,7 +25,7 @@ export const Contact: React.FC = () => {
                             <div className="py-12 lg:py-20 rounded bg-gray-800 shadow-md text-center">
                                 <h3 className="mb-5 lg:mb-10 text-3xl font-bold font-heading text-white">Contacts</h3>
                                 <a href={`mailto: ${TEXT.EMAIL}`}><p className="text-gray-400 hover:text-green-400">{TEXT.EMAIL}</p></a>
-                                <p className="text-gray-400 hover:text-green-400">{TEXT.PHONE}</p>
+                                <a href="tel: +13103511198"><p className="text-gray-400 hover:text-green-400">{TEXT.PHONE}</p></a>
                             </div>
                         </div>
                         <div className="w-full lg:w-1/2 px-4 flex items-stretch">
