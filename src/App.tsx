@@ -1,12 +1,15 @@
 
+import AuthContextProvider from './context/authContext';
 import Main from './layouts/main';
 
 export const App = () => {
-  return (
-    <div>
-      <Main/>
-    </div>
-  );
+    return (
+        <div>
+            <AuthContextProvider>
+                <Main />
+            </AuthContextProvider>
+        </div>
+    );
 };
 
 

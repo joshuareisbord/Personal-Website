@@ -1,32 +1,54 @@
-import ROUTES from '../constants/routes';
 
+import Login from '../pages/login';
+
+import Header from '../components/header';
 import Home from '../pages/home';
+import { useAuth } from '../context/authContext';
 
-import Footer from '../components/footer';
+import {
+    BrowserRouter,
+    Routes,
+    Route,
+    Navigate,
+} from "react-router-dom";
+import { ROUTES } from '../constants/routes';
+import { Edit } from '../pages/edit';
 
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 export const Main = () => {
+
+    const { currentUser } = useAuth()
+
     return (
 
-        <div className={'flex flex-col min-h-screen'}>
+        <div>
 
-            <div className={'flex-grow'}>
-                {/* Stuff between header and footer */}
-                <BrowserRouter>
-                    <Routes>
+            {currentUser ? <Header /> : <div/>}
 
-                        {/* Auto navigate to home route when at root. */}
-                        <Route path={''} element={<Navigate to={`${ROUTES.HOME}`} />} />
-                        <Route path={'/'} element={<Navigate to={`${ROUTES.HOME}`} />} />
+            <BrowserRouter>
 
-                        <Route path={`${ROUTES.HOME}`} element={<Home />} />
-                    </Routes>
-                </BrowserRouter>
-            </div>
+                <Routes>
 
-            {/* footer */}
-            <div><Footer /></div>
+                    <Route path={ROUTES.login} element={
+                        !currentUser ?
+                            <Login />
+                            :
+                            <Navigate to={'/'} />
+                    } />
+
+                    {
+                        !currentUser ?
+                            <Route path={"/"} element={<Navigate to={'/login'} />} />
+                            :
+                            <Route path={"/"} element={<Home />} />
+                    }
+
+                    <Route path={ROUTES.edit} element={<Edit />}/>
+
+
+                </Routes>
+
+            </BrowserRouter>
 
         </div>
     );

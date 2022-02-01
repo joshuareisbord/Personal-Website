@@ -1,6 +1,4 @@
-const ROUTES = {
-    ROOT: '/',
-    HOME: '/home'
-};
-
-export default ROUTES;
+export const ROUTES = {
+    edit: "/edit",
+    login: "/login",
+}
