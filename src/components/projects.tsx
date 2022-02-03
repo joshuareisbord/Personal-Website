@@ -14,11 +14,27 @@ const ProjectElement: React.FC<{ project: Project, img: string }> = ({ project, 
                 <img className="h-80 w-full relative rounded-lg object-cover" src={img} alt="" />
                 <div className="absolute inset-0 bg-green-600 opacity-75 rounded-lg"></div>
                 <div className="absolute inset-0 p-6 flex flex-col items-start">
-                    <p className=" mb-1 text-2xl lg:text-2xl text-white font-bold">{project.name}</p>
-                    <p className="mb-auto text-sm lg:text-1xl text-white font-bold">{project.desc}</p>
-                    <a className="inline-block py-2 px-4 border-2 border-green-500 hover:border-white bg-transparent text-gray-50 hover:bg-white hover:text-gray-900 transition duration-200 rounded-l-xl rounded-t-xl font-bold leading-loose" href={project.link} target="_blank" rel="noopener noreferrer">
-                        View Project
-                    </a>
+
+                    <div className="absolute inset-0 p-6 flex flex-col items-start">
+
+                        {/* Project Name */}
+                        <div className="flex flex-row">
+                            <p className=" mb-1 text-2xl lg:text-2xl text-white font-bold">{project.name}</p>
+                        </div>
+
+                        {/* Project Description */}
+                        <div className="flex flex-row flex-grow overflow-auto scrollbar-hide">
+                            <p className="mb-auto text-sm lg:text-1xl text-white font-bold">{project.desc}</p>
+                        </div>
+
+                        {/* Edit/View Link */}
+                        <div className="flex flex-row">
+                            <a className="inline-block py-2 px-4 border-2 border-green-500 hover:border-white bg-transparent text-gray-50 hover:bg-white hover:text-gray-900 transition duration-200 rounded-l-xl rounded-t-xl font-bold leading-loose" href={project.link} target="_blank" rel="noopener noreferrer">
+                                View Project
+                            </a>
+                        </div>
+
+                    </div>
                 </div>
             </div>
         </div>
@@ -29,7 +45,6 @@ const ProjectElement: React.FC<{ project: Project, img: string }> = ({ project, 
 }
 
 export const Projects: React.FC = () => {
-
 
     const [projects, setProjects] = useState<null | Project[]>(null)
 
