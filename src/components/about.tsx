@@ -5,8 +5,8 @@ import SECTIONS from '../constants/sections';
 export const About: React.FC = () => {
 
     const TEXT = {
-        ABOUT_BLURB_0: `I am a fourth-year student at one of Canada's most prestigious universities, Queen's University,
-                        pursuing a Bachelors's of Computer Science with an honors distinction (BCOMP. Honors).`,
+        ABOUT_BLURB_0: `I am graduate from one of Canada's most prestigious universities, Queen's University,
+                        having completed a Bachelors's of Computing with an honors distinction (BComp. Honors).`,
 
         ABOUT_BLURB_1: `My love for development started at a young age when I would make websites 
                         about Club Penguin items and where to get them. This snowballed into modifying 

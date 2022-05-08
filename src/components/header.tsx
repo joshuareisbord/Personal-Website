@@ -7,7 +7,7 @@ export const Header: React.FC = () => {
     const TEXT = {
         F_NAME: 'Joshua',
         L_NAME: 'Reisbord',
-        ABOUT_BLURB: 'Student passionate about creating new and innovative technologies used by people everyday.'
+        ABOUT_BLURB: 'Software Engineer passionate about creating new and innovative technologies used by people everyday.'
     }
 
     return (
