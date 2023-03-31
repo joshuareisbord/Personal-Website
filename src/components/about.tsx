@@ -5,18 +5,25 @@ import SECTIONS from '../constants/sections';
 export const About: React.FC = () => {
 
     const TEXT = {
-        ABOUT_BLURB_0: `I am a graduate from one of Canada's most prestigious universities, Queen's University,
-                        having completed a Bachelors's of Computing with an honors distinction (BComp. Honors).`,
 
-        ABOUT_BLURB_1: `My love for development started at a young age when I would make websites 
-                        about Club Penguin items and where to get them. This snowballed into modifying 
-                        maps in Halo 3 and hosting Minecraft servers using a popular utility at the time, 
-                        Bukkit, to enable plugin usage. Through this, I learned the extreme basics of server 
-                        administration, Java development, and the Linux command line`,
 
-        ABOUT_BLURB_2: `When I first entered university I pursued a degree in economics. However, I quickly found that 
-                        path was not for me, so I did what I should have done from the start, pursued computer science. 
-                        The rest is history, and I have not looked back since.`
+
+        ABOUT_BLURB_0: `My name is Joshua Reisbord, a dedicated Software Engineer holding a Bachelor of Computing, 
+                        Computer Science (BCOMP Honors) from Queen's University in Kingston, Ontario. 
+                        Throughout my academic and professional journey, I have honed my skills in various programming 
+                        languages and technologies.`,
+
+        ABOUT_BLURB_1: `My passion for programming took root at a young age when I began creating websites featuring 
+                        Club Penguin items and their locations. This enthusiasm grew as I started modifying maps in 
+                        Halo 3 and hosting Minecraft servers using the popular Bukkit utility, which enabled plugin usage. 
+                        These experiences allowed me to acquire foundational knowledge in server administration, 
+                        object oriented programing, and the Linux command line, setting the stage for my future pursuits in 
+                        software engineering.`,
+
+        ABOUT_BLURB_2: `As a developer, my passion lies in designing and developing innovative 
+                        applications that cater to specific niches and make the daily lives of users more manageable and 
+                        enjoyable. I invite you to browse through some of my notable projects featured in the projects section, 
+                        which showcase my expertise and commitment to delivering high-quality software solutions.`
     }
 
     return (
