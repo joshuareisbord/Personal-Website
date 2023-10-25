@@ -1,27 +1,38 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the
-// README at: https://github.com/devcontainers/templates/tree/main/src/javascript-node
+// README at: https://github.com/devcontainers/templates/tree/main/src/alpine
 {
-	"name": "Node.js",
+	"name": "Personal Website",
 	// Or use a Dockerfile or Docker Compose file. More info: https://containers.dev/guide/dockerfile
-	"image": "mcr.microsoft.com/devcontainers/javascript-node:0-18",
-	"features": {
-		"ghcr.io/devcontainers-contrib/features/firebase-cli:2": {
-			"version": "latest"
+	"dockerComposeFile": "docker-compose.yml",
+	"service": "app",
+	"workspaceFolder": "/workspace",
+	"settings": {
+		// "terminal.integrated.shell.linux": "/bin/zsh"
+		"terminal.integrated.defaultProfile.linux": "bash",
+		"terminal.integrated.profiles.linux": {
+			"zsh": {
+				"path": "/bin/bash"
+			},
 		}
-	}
-
+	},
 	// Features to add to the dev container. More info: https://containers.dev/features.
 	// "features": {},
-
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],
-
 	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "yarn install",
-
+	// "postCreateCommand": "echo PS1='\\[\\e[92m\\]\\u\\[\\e[0m\\]@\\[\\e[92m\\]\\h\\[\\e[0m\\]:\\[\\e[38;5;45;1m\\]\\w\\[\\e[0;32;47m\\]\\\\$ \\[\\e[0m\\]'",
 	// Configure tool-specific properties.
 	// "customizations": {},
-
 	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
-	// "remoteUser": "root"
+	"remoteUser": "root",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"GitHub.copilot-chat",
+				"GitHub.copilot",
+				"vscode-icons-team.vscode-icons",
+				"Angular.ng-template"
+			]
+		}
+	}
 }
