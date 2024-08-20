@@ -7,17 +7,18 @@
     "customizations": {
         "vscode": {
             "settings": {
-                "terminal.intergrated.defaultProfile.linux": "bash",
-                "terminal.intergated.profiles.linux": {
+                "terminal.integrated.defaultProfile.linux": "bash",
+                "terminal.integrated.profiles.linux": {
                     "bash": {
-                        "path": "bash"
+                        "path": "/bin/bash"
                     }
                 }
             },
             "extensions": [
-                "esbenp.prettier-vscode",
+                "esbenp.prettier-vscode"
             ]
         }
     },
-    "remoteUser": "root"
+    "remoteUser": "root",
+    "postCreateCommand": ""
 }
