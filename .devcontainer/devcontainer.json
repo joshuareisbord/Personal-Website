@@ -3,22 +3,15 @@
     "dockerComposeFile": "docker-compose.yml",
     "service": "app",
     "workspaceFolder": "/workspace",
-
     "customizations": {
         "vscode": {
-            "settings": {
-                "terminal.integrated.defaultProfile.linux": "bash",
-                "terminal.integrated.profiles.linux": {
-                    "bash": {
-                        "path": "/bin/bash"
-                    }
-                }
-            },
             "extensions": [
                 "esbenp.prettier-vscode"
             ]
         }
     },
     "remoteUser": "root",
-    "postCreateCommand": ""
+    "onCreateCommand": "/bin/bash /tmp/bootstrap/bootstrap.sh",
+    "postCreateCommand": "/bin/bash /tmp/bootstrap/cleanup.sh"
+
 }

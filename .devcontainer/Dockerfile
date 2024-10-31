@@ -1,17 +1,21 @@
-FROM node:20-alpine3.18
+# Base Image from Amazon Linux latest version
+FROM amazonlinux:latest
 
 # Install necessary packages
-RUN apk add --no-cache git bash openjdk11-jre
+RUN yum update -y \
+    && yum install -y git sudo \
+    && yum groupinstall -y "Development Tools"
 
-# Install npm packages
-RUN npm install -g typescript ts-node
-RUN npm install -g firebase firebase-tools
+# Create the /tmp/bootstrap directory and copy files
+RUN mkdir -p /tmp/bootstrap
+COPY util/ /tmp/bootstrap/
+RUN chmod -R +x /tmp/bootstrap
 
+# Set this as a safe git directory.
 RUN git config --global --add safe.directory /workspace
 
 # Set the PS1 variable to make it ✨fancy✨ and include the git branch.
 # The command is wrapped in a shell function to ensure it evaluates correctly each time the prompt is displayed
-
 RUN echo 'parse_git_branch() { \
     local branch="$(git branch 2>/dev/null | sed -e "/^[^*]/d" -e "s/* \(.*\)/\1/")"; \
     if [ -n "$branch" ]; then \
