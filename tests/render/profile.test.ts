@@ -84,7 +84,7 @@ test('React/Vite builds prerender populated profile HTML and local hydration ass
     assert.ok(links.every((link) => !/view\s+projects/i.test(link.textContent ?? '')), 'Project CTAs must be removed.');
     assert.match(html, /Fixture O&#x27;Neil/);
     assert.match(html, /Example &amp; Company/);
-    assert.match(html, /Mar 2024/);
+    assert.match(html, /March, 2024/);
     assert.match(html, /Present/);
     assert.match(html, /datetime="2021">2021<\/time>/i);
     assert.match(html, /datetime="2023">2023<\/time>/i);

@@ -43,6 +43,7 @@ Open [localhost:5173/](http://localhost:5173/). Without Firebase configuration t
 | `npm run hosting:preview` | Preview built assets with Firebase routing on port 5002 |
 | `npm run cms:emulators` | Start local demo Auth (9099) and Firestore (8080) |
 | `npm run cms:seed` | Enable the first owner in the local demo Firestore only |
+| `npm run geography:prepare` | Rebuild the committed geographic outlines and city lookup assets; see `docs/geography.md` for sources and licenses |
 | `npm run deploy:rules` | Separate, manual Firestore rules deployment after the review below |
 
 `npm run build` uses `src/entry-server.tsx` and the ignored `.prerender/` directory only during the build. Hosting serves `dist/index.html`, `dist/404.html`, and public assets. Build before running either preview command. Vite preview does not implement Firebase redirects; use [localhost:5002/](http://localhost:5002/) to check Hosting. Port 5002 avoids macOS AirPlay's port 5000 conflict.
@@ -102,6 +103,12 @@ Editing is a local draft until **Save** succeeds. Save publishes browser-visible
 
 The owner editor uses the website's paper background, black typography, and ruled sections to group profile, work experience, and contact settings. Email and phone are independently optional: leave either blank to hide that link, or leave both blank to show a link to the footer's social icons. Enter the phone number as you want it displayed; the editor builds its call link automatically. Existing publications retain their contact information until an owner explicitly edits and saves it. Missing optional contact fields normalize to empty strings, while malformed addresses and incomplete phone/link pairs are rejected.
 
+Work dates use a keyboard-accessible month picker and display as **March, 2024**. End dates can be cleared to **Present**. Existing year-only dates retain their precision until a month is explicitly chosen; the editor never assumes January. Dates earlier than a role's start are rejected.
+
+The location picker loads countries, regions, and searchable cities from this site's static assets. Selecting a city saves a `place` object (latitude, longitude, country code, and optional region/city) together with the location label. Existing text-only locations are preserved; choose a city to map them. **Remote** and **Clear location** remove coordinates. No API keys, external geocoding requests, or browser location permission are needed.
+
+The interactive D3 globe uses Natural Earth country and state/province outlines. Drag horizontally on touch, drag in any direction with a mouse, or use the labeled rotation/zoom controls. The role selector includes co-located jobs. Connections follow job start dates from earliest to latest, independently of the authored list order. Unknown locations break a route; ambiguous dates, co-located stops, and antipodal routes do not create misleading travel lines. Auto-rotation and route flow pause offscreen, in background tabs, during interaction, and for reduced-motion preferences. Boundaries load near the viewport, and lookup data loads only in the editor, one country at a time. Sources, licenses, and regeneration instructions are in [Geography data](docs/geography.md).
+
 The service stores one document at `website/content`:
 
 | Field | Stored value |
@@ -126,6 +133,8 @@ Production is blocked before the build if any of the four `VITE_FIREBASE_*` repo
 Hosting serves the website directly at `/`. Legacy `/home`, `/home/`, and `/home.html` URLs redirect to `/` (301); clean URLs and a genuine 404 remain enabled. Before cutover, exercise owner sign-in, approved-email management, failed/successful saves, signed-out reads, and navigation with emulators and then the authorized target project.
 
 For a Hosting regression, pause production runs, restore the previous release in Firebase Hosting history, and review/revert the source before resuming deployments. **Hosting rollback does not roll back Firestore content or the allowlist.** Restore content from a reviewed backup through an approved owner save, or use administrator recovery for database/allowlist problems. A revision number is not a content-history archive; keep backups before significant edits or rules changes.
+
+Versions before the globe feature reject the new optional `experience[].place` field. Before rolling back to those versions, export a content backup and use a reviewed administrator migration to remove only each role's `place` field, retaining the original location labels. Prefer reverting presentation changes while keeping the updated parser so existing coordinates remain usable.
 
 No existing cloud resources are deleted automatically. Keep ownership checks and verified backups for any later retirement. Dependency versions live in `package.json` and the lockfile; keep Node typings aligned with the runtime and review fresh production/full audits when updating the toolchain.
 
