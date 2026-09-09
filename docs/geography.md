@@ -4,11 +4,23 @@ The wireframe globe uses local TopoJSON. The editor loads a small country index 
 
 ## Street-level exploration
 
-Keep pressing **Zoom in** beyond the globe's regional view to open a detailed map in the same panel. **Street level** jumps directly to the selected role's city. The detailed view uses npm-managed Leaflet and OpenStreetMap raster tiles, with monochrome styling, visible attribution, and zoom up to level 19. Use the zoom controls, keyboard +/−, double-click, or pinch; ordinary mouse-wheel scrolling continues scrolling the webpage. **Back to globe**, or zooming out to world scale, returns to the wireframe view at the current map center.
+Keep pressing **Zoom in** beyond the globe's regional view to open a detailed map in the same panel. **Street level** jumps directly to the selected role's office pin, or city when no office is supplied. The detailed view uses npm-managed Leaflet and OpenStreetMap raster tiles, with monochrome styling, visible attribution, and zoom up to level 19. Use the zoom controls, keyboard +/−, double-click, or pinch; ordinary mouse-wheel scrolling continues scrolling the webpage. **Back to globe**, or zooming out to world scale, returns to the wireframe view at the current map center.
 
 The mapping library and street tiles load only after explicit interaction. Street tiles require internet access and use [OpenStreetMap's standard tile service](https://operations.osmfoundation.org/policies/tiles/), whose availability is best-effort. Browser requests use HTTPS and normal Referer/cache behavior. There is no tile proxy, background prefetch, bulk download, or offline archive. Attribution remains outside the map as well as in its controls. Automated zoom tests intercept tiles with local fixtures rather than requesting many zoom levels from the community service.
 
-Work markers still represent the saved city coordinates, not verified office addresses. Connections show the chronology of roles along great-circle paths; they are not street directions. Co-located roles stay individually selectable, and unknown locations are never inferred. The wireframe globe and role details remain usable if the street library or tile service is unavailable. No Firebase database, authorization, or location schema change is required.
+Work markers use owner-selected office coordinates when provided and city coordinates otherwise. Connections show the chronology of roles along great-circle paths; they are not street directions. Co-located roles stay individually selectable, and unknown locations are never inferred. The wireframe globe and role details remain usable if the street library or tile service is unavailable.
+
+## Optional office addresses
+
+In the owner editor, choose a city, then enter a street number and street name under **Office address**. Select **Find address**, review the matching numbered addresses, and select the correct result. **Check pin** opens the selected point on OpenStreetMap. **Save and publish** persists it with the rest of the draft. **Use city pin instead** removes the office refinement; selecting another city, Remote, or Clear location also removes it.
+
+The public role label stays city, state/province, country. The address is never added to role descriptions, map marker titles, or accessibility labels. This is a presentation choice, not private storage: office coordinates and the stored address belong to the public content snapshot, and the exact pin is visible on the map. Only publish office locations intended to be public.
+
+Address lookup uses the [Photon API](https://github.com/komoot/photon/blob/master/docs/api-v1.md) with OpenStreetMap data. Its [community service](https://github.com/komoot/photon#demo-server) permits reasonable usage but offers no availability guarantee. No API key or new dependency is needed. Only explicit owner searches contact the service; typing and public visits never geocode. Searches include the selected city, country restriction, and a geographic bias. Results require a street number and street name, so a city or street midpoint is never silently substituted for an office. Coverage is not exhaustive; review the pin before publishing. A missing match or failed lookup leaves the saved location unchanged.
+
+Requests are throttled to at most one per 1.1 seconds per browser module, cached in memory (up to 50 searches), and cancelled on input/context changes or after 15 seconds. Only selected results are persisted. Public rendering uses saved coordinates independently of Photon. The endpoint is isolated in `src/lib/office-search.ts` if another Photon host is needed. Browser tests use mocked responses; a separate manual search checks the live integration.
+
+The backward-compatible `place.office` field contains `{ address, latitude, longitude }`. City coordinates remain in `place.latitude` and `place.longitude` for removal/fallback. Office values are validated before publication and public reads. Existing Firebase payload rules and owner authorization continue to apply; no cloud rule deployment or content migration is required.
 
 ## Asset contract
 
