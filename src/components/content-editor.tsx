@@ -1,10 +1,12 @@
 import { useEffect, useId, useRef, useState, type ReactElement } from 'react';
 
 import { parseContent, type SiteContent, type SiteCopy } from '../lib/content';
-import type { Profile } from '../lib/profile';
+import type { Profile, WorkPlace } from '../lib/profile';
+import { buttonClass, controlClass } from './editor-styles';
+import { LocationPicker } from './location-picker';
+import { MonthPicker } from './month-picker';
 
-export const controlClass = 'mt-2 min-h-12 w-full min-w-0 border border-muted bg-paper px-3 py-3 text-base leading-relaxed text-ink placeholder:text-muted focus:border-ink focus-visible:outline-2 focus-visible:outline-ink disabled:cursor-wait';
-export const buttonClass = 'inline-flex min-h-12 items-center justify-center border border-ink px-4 py-2 font-mono text-xs text-ink hover:bg-ink hover:text-paper focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-50';
+export { buttonClass, controlClass } from './editor-styles';
 
 interface FieldProps {
   label: string;
@@ -59,12 +61,22 @@ export function ContentEditor({ initial, onSave, onDirty }: Props): ReactElement
     const phoneHref = /^\+?\d{3,30}$/.test(digits) ? `tel:${digits}` : '';
     change({ ...draft, site: { ...draft.site, phone: value.trim() ? value : '', phoneHref } });
   };
-  const role = (index: number, key: keyof Profile['experience'][number], value: string): void => {
+  const role = (index: number, key: Exclude<keyof Profile['experience'][number], 'place'>, value: string): void => {
     const experience = draft.profile.experience.map((entry, position) => {
       if (position !== index) return entry;
       const updated = { ...entry, [key]: value };
       if (key === 'endDate' && !value) updated.endDate = null;
       if ((key === 'description' || key === 'location') && !value) delete updated[key];
+      return updated;
+    });
+    change({ ...draft, profile: { ...draft.profile, experience } });
+  };
+  const locate = (index: number, location: string | undefined, place: WorkPlace | undefined): void => {
+    const experience = draft.profile.experience.map((entry, position) => {
+      if (position !== index) return entry;
+      const updated = { ...entry };
+      if (location) updated.location = location; else delete updated.location;
+      if (place) updated.place = place; else delete updated.place;
       return updated;
     });
     change({ ...draft, profile: { ...draft.profile, experience } });
@@ -111,7 +123,7 @@ export function ContentEditor({ initial, onSave, onDirty }: Props): ReactElement
 
       <section aria-labelledby={`${sectionId}-experience`} className="border-t border-ink py-8 sm:py-10">
         <h3 id={`${sectionId}-experience`} className="text-3xl font-semibold tracking-tight">Work experience</h3>
-        <p className="mt-2 mb-7 text-base leading-relaxed text-muted">Positions appear in the order below. Use a year or year and month, such as 2024 or 2024-03. Leave the end date blank for a current role.</p>
+        <p className="mt-2 mb-7 text-base leading-relaxed text-muted">Choose the month and year for each role. Leave the end date blank for a current role. Positions appear in the order below; globe connections follow their start dates, from earliest to latest.</p>
         <EditorField label="Experience heading" value={draft.site.experienceTitle} onChange={(value) => copy('experienceTitle', value)} />
         <div className="mt-8 space-y-8">
           {draft.profile.experience.length === 0 && <p className="border-y border-rule py-6 text-muted">No positions yet. Add a role to start your work history.</p>}
@@ -120,10 +132,10 @@ export function ContentEditor({ initial, onSave, onDirty }: Props): ReactElement
             <div className="grid gap-5 sm:grid-cols-2">
               <EditorField label="Company" value={entry.company} onChange={(value) => role(index, 'company', value)} />
               <EditorField label="Job title" value={entry.title} onChange={(value) => role(index, 'title', value)} />
-              <EditorField label="Start date" value={entry.startDate} onChange={(value) => role(index, 'startDate', value)} />
-              <EditorField label="End date" required={false} value={entry.endDate ?? ''} onChange={(value) => role(index, 'endDate', value)} hint="Leave blank if you still work here." />
+              <MonthPicker label="Start date" value={entry.startDate} onChange={(value) => role(index, 'startDate', value)} />
+              <MonthPicker label="End date" required={false} value={entry.endDate ?? ''} min={entry.startDate} onChange={(value) => role(index, 'endDate', value)} />
             </div>
-            <EditorField label="Location" required={false} value={entry.location ?? ''} onChange={(value) => role(index, 'location', value)} />
+            <LocationPicker location={entry.location} place={entry.place} onChange={(location, place) => locate(index, location, place)} />
             <EditorField label="Description" required={false} multiline value={entry.description ?? ''} onChange={(value) => role(index, 'description', value)} />
             <div className="flex flex-wrap gap-3">
               <button type="button" className={buttonClass} disabled={index === 0} onClick={() => {

@@ -26,6 +26,17 @@ test('contact methods may be omitted independently and normalize to empty string
   assert.deepEqual(whitespace.site, parsed.site);
 });
 
+test('work places round-trip coordinates while preserving legacy text-only locations', () => {
+  const role = { company: 'Company', title: 'Engineer', startDate: '2024-03', endDate: null, location: 'Kingston, Ontario, Canada' };
+  const place = { latitude: 44.2312, longitude: -76.486, countryCode: 'CA', regionCode: 'ON', city: 'Kingston' };
+  const content = { ...initialContent, profile: { ...initialContent.profile, experience: [role, { ...role, place }] } };
+  assert.deepEqual(parseContent(JSON.parse(serializeContent(content))), content);
+  for (const invalid of [{ ...place, latitude: 91 }, { ...place, longitude: -181 }, { ...place, latitude: NaN }, { ...place, longitude: Infinity }, { ...place, countryCode: '../US' }]) {
+    assert.throws(() => parseContent({ ...content, profile: { ...content.profile, experience: [{ ...role, place: invalid }] } }));
+  }
+  assert.throws(() => parseContent({ ...content, profile: { ...content.profile, experience: [{ ...role, location: undefined, place }] } }));
+});
+
 test('optional contact methods still reject malformed values and incomplete phone pairs', () => {
   for (const methods of [{ email: 'broken' }, { phone: '', phoneHref: 'tel:+13103511198' }, { phone: 'Call me', phoneHref: '' }, { phoneHref: 'tel:   ' }]) {
     assert.throws(() => parseContent({ ...initialContent, site: { ...initialContent.site, ...methods } }));

@@ -2,15 +2,26 @@ import { z } from 'zod';
 
 const requiredText = z.string().min(1).max(500).refine((value) => value.trim().length > 0);
 const date = z.string().regex(/^[1-9]\d{3}(?:-(?:0[1-9]|1[0-2]))?$/);
+const placeSchema = z.object({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  countryCode: z.string().regex(/^[A-Z]{2}$/),
+  regionCode: z.string().min(1).max(20).optional(),
+  city: requiredText.optional(),
+}).strict();
+
+/** A selected geographic location stored with the published work history. */
+export type WorkPlace = z.infer<typeof placeSchema>;
 
 const experienceSchema = z.object({
   company: requiredText,
   title: requiredText,
   location: requiredText.optional(),
+  place: placeSchema.optional(),
   description: z.string().min(1).max(20_000).optional(),
   startDate: date,
   endDate: date.nullable(),
-}).strict().refine((entry) => {
+}).strict().refine((entry) => !entry.place || Boolean(entry.location), { message: 'A work place needs a location label.' }).refine((entry) => {
   if (entry.endDate === null) return true;
   const earliestStart = entry.startDate.length === 4 ? `${entry.startDate}-01` : entry.startDate;
   const latestEnd = entry.endDate.length === 4 ? `${entry.endDate}-12` : entry.endDate;
