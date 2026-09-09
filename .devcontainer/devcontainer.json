@@ -11,7 +11,8 @@
     4173,
     5002,
     9099,
-    8080
+    8080,
+    9199
   ],
   "postCreateCommand": "npm ci",
   "remoteUser": "node"

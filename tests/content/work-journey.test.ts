@@ -172,6 +172,13 @@ test('globe hydrates without eager fetching, retries map errors, selects shared 
     assert.notEqual(host.querySelector('svg > path')!.getAttribute('d'), beforeZoom);
     await act(async () => button('Reset').click());
     assert.equal(host.querySelector('svg > path')!.getAttribute('d'), beforeZoom);
+    assert.equal(button('Street level').disabled, false, 'A mapped role can open its city directly.');
+    for (let step = 0; step < 7; step++) await act(async () => button('Zoom in').click());
+    assert.equal(host.querySelector('svg[aria-label="Interactive work-history globe"]'), null, 'Zooming beyond the globe opens detailed mapping.');
+    assert.ok(button('Back to globe'), 'Loading or unavailable street assets never trap the visitor.');
+    await act(async () => button('Back to globe').click());
+    assert.ok(host.querySelector('svg[aria-label="Interactive work-history globe"]'));
+    assert.equal(button('Zoom in').disabled, false, 'Returning to the globe keeps street zoom available.');
     await act(async () => { root?.unmount(); root = undefined; });
     assert.equal(frames.size, 0);
   } finally {

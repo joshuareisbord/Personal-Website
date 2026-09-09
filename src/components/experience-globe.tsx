@@ -7,6 +7,7 @@ import type { MultiLineString } from 'geojson';
 import type { Profile } from '../lib/profile';
 import { formatExperienceDate } from '../lib/dates';
 import { buildWorkJourney, interpolateJourneyLeg, type Coordinates, type WorkJourney } from '../lib/work-journey';
+import { StreetMapLoader } from './street-map-loader';
 
 interface Props { experience: Profile['experience']; }
 interface Boundaries { coast: MultiLineString; countries: MultiLineString; regions: MultiLineString; }
@@ -74,6 +75,12 @@ function GlobeCanvas({ journey, boundaries, selected, onSelect }: {
   const [paused, setPaused] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [dragging, setDragging] = useState(false);
+  const [details, setDetails] = useState<{ center: Coordinates; zoom: number } | null>(null);
+  const wasDetailed = useRef(false);
+  useEffect(() => {
+    if (!details && wasDetailed.current) drawing.current?.focus({ preventScroll: true });
+    wasDetailed.current = Boolean(details);
+  }, [details]);
   const id = useId();
   const instructionsId = `${id}-instructions`;
   useEffect(() => {
@@ -142,6 +149,7 @@ function GlobeCanvas({ journey, boundaries, selected, onSelect }: {
   };
   const zoom = (delta: number): void => {
     setPaused(true);
+    if (delta > 0 && view.zoom >= 1.6) { setDetails({ center, zoom: 4 }); return; }
     setView((current) => ({ ...current, zoom: Math.max(0.8, Math.min(1.6, Math.round((current.zoom + delta) * 10) / 10)) }));
   };
   const reset = (): void => {
@@ -185,6 +193,11 @@ function GlobeCanvas({ journey, boundaries, selected, onSelect }: {
   const leg = journey.legs[activeLeg];
   const particle = leg ? interpolateJourneyLeg(leg, (view.elapsed % 4) / 4) : null;
   const particlePoint = particle && isVisible(particle) ? projection(particle) : null;
+  if (details) return <StreetMapLoader journey={journey} selected={selected} initialCenter={details.center} initialZoom={details.zoom} onSelect={onSelect}
+    onBack={(coordinates) => {
+      setView((current) => ({ ...current, rotation: pose(coordinates), zoom: 1.6 }));
+      setPaused(true); setDetails(null);
+    }} />;
   return <div>
     <svg ref={drawing} viewBox="0 0 500 500" role="group" aria-label="Interactive work-history globe" aria-describedby={instructionsId}
       tabIndex={0} onKeyDown={handleKey} onFocus={() => setPaused(true)}
@@ -230,12 +243,17 @@ function GlobeCanvas({ journey, boundaries, selected, onSelect }: {
       <button type="button" className={controlClass} aria-label="Rotate globe right" onClick={() => rotate(12, 0)}>→</button>
       <button type="button" className={controlClass} aria-label="Rotate globe up" onClick={() => rotate(0, 10)}>↑</button>
       <button type="button" className={controlClass} aria-label="Rotate globe down" onClick={() => rotate(0, -10)}>↓</button>
-      <button type="button" className={controlClass} aria-label="Zoom in" disabled={view.zoom >= 1.6} onClick={() => zoom(0.1)}>+</button>
+      <button type="button" className={controlClass} aria-label="Zoom in" onClick={() => zoom(0.1)}>+</button>
       <button type="button" className={controlClass} aria-label="Zoom out" disabled={view.zoom <= 0.8} onClick={() => zoom(-0.1)}>−</button>
       <button type="button" className={controlClass} disabled={reducedMotion} aria-label={paused || reducedMotion ? 'Resume globe animation' : 'Pause globe animation'} aria-pressed={paused || reducedMotion} onClick={() => setPaused((value) => !value)}>{paused || reducedMotion ? 'Resume' : 'Pause'}</button>
       <button type="button" className={controlClass} onClick={reset}>Reset</button>
+      <button type="button" className={controlClass} disabled={!journey.stops.find((stop) => stop.index === selected)?.coordinates}
+        onClick={() => {
+          const coordinates = journey.stops.find((stop) => stop.index === selected)?.coordinates;
+          if (coordinates) { setPaused(true); setDetails({ center: coordinates, zoom: 16 }); }
+        }}>Street level</button>
     </div>
-    <p className="mt-3 text-base leading-relaxed text-muted">Drag to rotate · Select a point to explore.</p>
+    <p className="mt-3 text-base leading-relaxed text-muted">Drag to rotate · Keep zooming in for streets, or select a role and choose Street level.</p>
     <p id={instructionsId} className="sr-only">Focus the globe to rotate with arrow keys, zoom with + and −, pause with Space, and reset with Home. On touch screens, drag horizontally to rotate or vertically to scroll the page. Rotation and zoom buttons are also available below.</p>
     {reducedMotion && <p className="mt-2 text-base text-muted">Automatic motion is off to match your reduced-motion setting.</p>}
   </div>;
