@@ -14,7 +14,7 @@ Footer social links use the GitHub and LinkedIn SVG paths imported from Material
 
 ## Local development
 
-Use Node 24, npm, and Java 21 for Firestore emulator tests. The development container includes Node and Java and forwards Vite development (5173), Vite preview (4173), Hosting (5002), Auth (9099), and Firestore (8080).
+Use Node 26.8.1 or a newer Node 26 release, npm, and Java 21 for Firestore emulator tests. The development container includes Node and Java and forwards Vite development (5173), Vite preview (4173), Hosting (5002), Auth (9099), and Firestore (8080). GitHub Actions reads the runtime from `.nvmrc`.
 
 On macOS with Homebrew's `openjdk@21` installed, select it for the current shell without a global Java symlink:
 
@@ -127,4 +127,6 @@ Hosting preserves `/` → `/home` (301), clean URLs without trailing slashes, an
 
 For a Hosting regression, pause production runs, restore the previous release in Firebase Hosting history, and review/revert the source before resuming deployments. **Hosting rollback does not roll back Firestore content or the allowlist.** Restore content from a reviewed backup through an approved owner save, or use administrator recovery for database/allowlist problems. A revision number is not a content-history archive; keep backups before significant edits or rules changes.
 
-No existing cloud resources are deleted automatically. Keep ownership checks and verified backups for any later retirement. Dependency versions live in `package.json` and the lockfile; retain Node 24 typings and review fresh production/full audits when updating the toolchain.
+No existing cloud resources are deleted automatically. Keep ownership checks and verified backups for any later retirement. Dependency versions live in `package.json` and the lockfile; keep Node typings aligned with the runtime and review fresh production/full audits when updating the toolchain.
+
+Firebase CLI 15.29.0 still requests Superstatic 10, whose supported Node versions stop at 24. The scoped npm override selects Superstatic 11.0.0 for its Node 26 support. Recheck and remove this override when Firebase CLI updates its dependency; Hosting emulator redirects, static assets, and 404 handling are verified with it.

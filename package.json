@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": "^24.0.0"
+    "node": "^26.8.1"
   },
   "scripts": {
     "dev": "vite --host 127.0.0.1",
@@ -33,7 +33,7 @@
     "@firebase/rules-unit-testing": "^5.0.2",
     "@tailwindcss/vite": "^4.3.3",
     "@types/jsdom": "^30.0.0",
-    "@types/node": "^24.13.3",
+    "@types/node": "^26.5.0",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
     "@vitejs/plugin-react": "^6.1.1",
@@ -43,5 +43,10 @@
     "tsx": "^4.23.13",
     "typescript": "^7.0.2",
     "vite": "^8.2.2"
+  },
+  "overrides": {
+    "firebase-tools": {
+      "superstatic": "11.0.0"
+    }
   }
 }
