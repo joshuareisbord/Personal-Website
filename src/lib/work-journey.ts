@@ -42,7 +42,15 @@ function dateOrder(value: string): number | null {
 function coordinatesFor(place: JourneyExperience['place']): Coordinates | null {
   if (!place || !Number.isFinite(place.latitude) || !Number.isFinite(place.longitude)
     || Math.abs(place.latitude) > 90 || Math.abs(place.longitude) > 180) return null;
-  return [Math.abs(place.latitude) === 90 ? 0 : place.longitude === 180 ? -180 : place.longitude, place.latitude];
+  const office = place.office;
+  if (office !== undefined && (!office || typeof office !== 'object' || Array.isArray(office)
+    || typeof office.address !== 'string' || !office.address.trim() || office.address.length > 500
+    || typeof place.city !== 'string' || !place.city.trim() || place.city.length > 500
+    || Object.keys(office).some((key) => !['address', 'latitude', 'longitude'].includes(key)))) return null;
+  const coordinates = office === undefined ? place : office;
+  if (!Number.isFinite(coordinates.latitude) || !Number.isFinite(coordinates.longitude)
+    || Math.abs(coordinates.latitude) > 90 || Math.abs(coordinates.longitude) > 180) return null;
+  return [Math.abs(coordinates.latitude) === 90 ? 0 : coordinates.longitude === 180 ? -180 : coordinates.longitude, coordinates.latitude];
 }
 
 /** Build chronological routes only between consecutive roles with unambiguous saved geography. */

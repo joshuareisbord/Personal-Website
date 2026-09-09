@@ -3,6 +3,7 @@ import { useEffect, useId, useMemo, useRef, useState, type ReactElement } from '
 import { countriesSchema, locationsSchema, searchCities, selectCity, type City, type Country, type LocationData } from '../lib/locations';
 import type { WorkPlace } from '../lib/profile';
 import { buttonClass, controlClass } from './editor-styles';
+import { OfficePicker } from './office-picker';
 
 interface Props { location: string | undefined; place: WorkPlace | undefined; onChange: (location: string | undefined, place: WorkPlace | undefined) => void; }
 
@@ -61,6 +62,10 @@ export function LocationPicker({ location, place, onChange }: Props): ReactEleme
       setCountryCode(place?.countryCode ?? ''); setRegionCode(place?.regionCode ?? ''); setQuery(''); setActive(-1); setOpen(true);
     }}><span id={`${id}-value`} className="min-w-0 break-words">{location || 'Choose a location'}</span><span aria-hidden="true">{open ? '−' : '+'}</span></button>
     {location && !place && location !== 'Remote' && <p className="mt-2 text-sm text-muted">Choose a city to add this location to the globe.</p>}
+    {!open && place?.city && location && <OfficePicker key={JSON.stringify([location, place.latitude, place.longitude])} location={location} place={place} onChange={(office) => {
+      const { office: _oldOffice, ...city } = place;
+      onChange(location, office ? { ...city, office } : city);
+    }} />}
     {open && <div id={`${id}-picker`} className="mt-3 space-y-4 border border-rule p-4 sm:p-5" onKeyDown={(event) => { if (event.key === 'Escape') { event.stopPropagation(); event.preventDefault(); close(); } }}>
       <p className="text-sm leading-relaxed text-muted">Select a city to place this role on the globe. You can also mark it as remote or leave the location empty.</p>
       <div className="grid gap-4 sm:grid-cols-2">

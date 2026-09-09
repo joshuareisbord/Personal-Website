@@ -49,6 +49,58 @@ test('co-located roles retain every selectable job and omit zero-length travel',
   assert.equal(buildWorkJourney([role('A', '2020', 0, 90), role('B', '2021', 120, 90)]).markers.length, 1);
 });
 
+test('offices take coordinate precedence while city-only roles retain their coordinates and labels', () => {
+  const city = { latitude: 44.2312, longitude: -76.486, countryCode: 'CA', regionCode: 'ON', city: 'Kingston' };
+  const office = { address: '123 Main Street', latitude: 44.232, longitude: -76.487 };
+  const experience = [
+    { ...role('Office', '2020'), location: 'Kingston, Ontario, Canada', place: { ...city, office } },
+    { ...role('City', '2021'), location: 'Kingston, Ontario, Canada', place: city },
+  ];
+  const original = structuredClone(experience);
+  const journey = buildWorkJourney(experience);
+  assert.deepEqual(journey.stops.map((stop) => stop.coordinates), [[office.longitude, office.latitude], [city.longitude, city.latitude]]);
+  assert.deepEqual(journey.stops.map((stop) => stop.role.location), ['Kingston, Ontario, Canada', 'Kingston, Ontario, Canada']);
+  assert.deepEqual(experience, original);
+  assert.equal(journey.legs.length, 1);
+  assert.equal(journey.unmappedCount, 0);
+});
+
+test('different offices in the same city produce distinct markers and a directed leg', () => {
+  const city = { latitude: 44.2312, longitude: -76.486, countryCode: 'CA', city: 'Kingston' };
+  const first = { address: '123 Main Street', latitude: 44.232, longitude: -76.487 };
+  const second = { address: '456 Main Street', latitude: 44.233, longitude: -76.488 };
+  const journey = buildWorkJourney([first, second, second].map((office, index) => ({
+    ...role(String(index), String(2020 + index)), place: { ...city, office },
+  })));
+  assert.deepEqual(journey.markers.map((marker) => marker.coordinates), [[first.longitude, first.latitude], [second.longitude, second.latitude]]);
+  assert.deepEqual(journey.markers.map((marker) => marker.stops.map((stop) => stop.index)), [[0], [1, 2]]);
+  assert.equal(journey.legs.length, 1);
+  assert.deepEqual(interpolateJourneyLeg(journey.legs[0]!, 0), [first.longitude, first.latitude]);
+  assert.deepEqual(interpolateJourneyLeg(journey.legs[0]!, 1), [second.longitude, second.latitude]);
+});
+
+test('malformed offices passed directly to the journey stay unmapped and break adjacent legs', () => {
+  const office = { address: '123 Main Street', latitude: 44.232, longitude: -76.487 };
+  const city = { latitude: 44.2312, longitude: -76.486, countryCode: 'CA', city: 'Kingston' };
+  const invalidPlaces: unknown[] = [
+    ...[null, '', [], {}, { address: office.address }, { latitude: 44, longitude: -76 },
+      { ...office, address: ' \n ' }, { ...office, address: 'a'.repeat(501) },
+      { ...office, latitude: 91 }, { ...office, latitude: -91 }, { ...office, longitude: 181 }, { ...office, longitude: -181 },
+      { ...office, latitude: NaN }, { ...office, longitude: Infinity }, { ...office, latitude: '44' },
+      { ...office, unexpected: true },
+    ].map((invalid) => ({ ...city, office: invalid })),
+    { ...city, city: undefined, office }, { ...city, city: ' ', office },
+  ];
+  for (const place of invalidPlaces) {
+    const journey = buildWorkJourney([role('Before', '2019', 0),
+      { ...role('Invalid office', '2020'), place: place as JourneyExperience['place'] }, role('After', '2021', 30)]);
+    assert.equal(journey.stops[1]!.coordinates, null);
+    assert.equal(journey.unmappedCount, 1);
+    assert.equal(journey.markers.length, 2);
+    assert.equal(journey.legs.length, 0);
+  }
+});
+
 test('antimeridian travel takes the short great-circle arc; antipodes have no invented route', () => {
   const journey = buildWorkJourney([role('A', '2020', 170), role('B', '2021', -170)]);
   const halfway = interpolateJourneyLeg(journey.legs[0]!, 0.5);

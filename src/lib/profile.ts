@@ -2,13 +2,25 @@ import { z } from 'zod';
 
 const requiredText = z.string().min(1).max(500).refine((value) => value.trim().length > 0);
 const date = z.string().regex(/^[1-9]\d{3}(?:-(?:0[1-9]|1[0-2]))?$/);
+const officeSchema = z.object({
+  address: requiredText,
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+}).strict();
+
+/** An optional exact office location, separate from the public city label. */
+export type WorkOffice = z.infer<typeof officeSchema>;
+
 const placeSchema = z.object({
   latitude: z.number().min(-90).max(90),
   longitude: z.number().min(-180).max(180),
   countryCode: z.string().regex(/^[A-Z]{2}$/),
   regionCode: z.string().min(1).max(20).optional(),
   city: requiredText.optional(),
-}).strict();
+  office: officeSchema.optional(),
+}).strict().refine((place) => !place.office || Boolean(place.city), {
+  message: 'An office needs a selected city.', path: ['city'],
+});
 
 /** A selected geographic location stored with the published work history. */
 export type WorkPlace = z.infer<typeof placeSchema>;

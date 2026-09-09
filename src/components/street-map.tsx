@@ -18,7 +18,7 @@ interface Runtime {
   select: (recenter: boolean) => void;
 }
 
-/** Explore saved city centers using an on-demand street map within the globe panel. */
+/** Explore saved offices or city centers using an on-demand street map within the globe panel. */
 export default function StreetMap({ journey, selected, initialCenter, initialZoom, onSelect, onBack }: StreetMapProps): ReactElement {
   const host = useRef<HTMLDivElement>(null);
   const runtime = useRef<Runtime | null>(null);
@@ -217,7 +217,7 @@ export default function StreetMap({ journey, selected, initialCenter, initialZoo
         <button type="button" className="min-h-12 underline underline-offset-4" onClick={() => setAttempt((value) => value + 1)}>Retry map</button></> : null}
     </p>
     <p id={instructionsId} className="mt-3 text-base leading-relaxed text-muted">Drag to pan · Use +/− or pinch to zoom. Use two fingers to move the map on touch screens.<span className="sr-only"> Arrow keys pan when the map is focused. Double-click also zooms. One finger scrolls the page. Zoom out to return to the globe.</span></p>
-    <p className="mt-3 text-base leading-relaxed text-muted">Points mark city centers. Dashed lines show career moves between cities.</p>
+    <p className="mt-3 text-base leading-relaxed text-muted">Points mark offices where provided, or city centers. Dashed lines show career moves between locations.</p>
     <p className="mt-3 text-base">© <a className="underline underline-offset-4" href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors</p>
   </div>;
 }

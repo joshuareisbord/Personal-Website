@@ -1,5 +1,7 @@
 import type { ReactElement, ReactNode } from 'react';
 
+import { mdiGithub, mdiLinkedin } from '@mdi/js';
+
 import { Experience } from '../components/experience';
 import { SignalStudy } from '../components/signal-study';
 import { Layout } from '../layouts/main';
@@ -13,7 +15,7 @@ export function Home({ content: { profile, site }, year, ownerControls }: Props)
   const nameParts = profile.name.trim().split(/\s+/);
   const lastName = nameParts.pop();
   const initials = profile.name.split(/\s+/).map((part) => part[0]).slice(0, 2).join('');
-  return <Layout year={year} ownerControls={ownerControls} socialLinks={{ github: site.github, linkedin: site.linkedin }}>
+  return <Layout year={year} ownerControls={ownerControls}>
     <div id="home" className="mx-auto max-w-[100rem] px-5 sm:px-10 lg:px-16">
       <header className="flex min-h-24 flex-wrap items-center justify-between gap-x-8 border-b border-rule py-3">
         <a href="#home" aria-label={`${profile.name} home`} className="inline-flex min-h-11 items-center text-3xl font-extrabold tracking-[-0.08em]">{initials}<span aria-hidden="true" className="ml-1 text-base">↗</span></a>
@@ -56,7 +58,15 @@ export function Home({ content: { profile, site }, year, ownerControls }: Props)
           <p className="mb-8 max-w-md text-2xl leading-snug text-night-muted">{site.contactIntro}</p>
           {site.email && <a className="flex min-h-12 max-w-full items-center gap-4 border-b border-night-rule pb-2 text-[clamp(1.05rem,2.1vw,1.8rem)] hover:text-white" href={`mailto:${site.email}`}><span className="break-all">{site.email}</span><span aria-hidden="true">↗</span></a>}
           {site.phone && site.phoneHref && <a className="mt-5 flex min-h-11 items-center font-mono text-sm text-night-muted hover:text-white" href={site.phoneHref}>{site.phone}</a>}
-          {!site.email && !site.phone && <a href="#social-links" className="inline-flex min-h-12 items-center gap-6 border-b border-night-rule font-mono text-sm hover:text-white">Find me online <span aria-hidden="true">↓</span></a>}
+          <nav id="social-links" aria-labelledby="social-heading" className={site.email || site.phone ? 'mt-8' : ''}>
+            <p id="social-heading" className="font-mono text-sm text-night-muted">Find me online</p>
+            <div className="mt-3 flex flex-wrap gap-x-8 gap-y-2">
+              {[{ name: 'LinkedIn', href: site.linkedin, icon: mdiLinkedin }, { name: 'GitHub', href: site.github, icon: mdiGithub }].map((social) => <a key={social.name} href={social.href} target="_blank" rel="noopener noreferrer" className="inline-flex min-h-12 items-center gap-3 border-b border-night-rule font-mono text-sm transition-colors hover:text-white motion-reduce:transition-none">
+                <svg viewBox="0 0 24 24" className="size-6" fill="currentColor" aria-hidden="true" focusable="false"><path d={social.icon} /></svg>
+                {social.name}<span aria-hidden="true">↗</span>
+              </a>)}
+            </div>
+          </nav>
         </div>
       </div>
     </section>

@@ -43,6 +43,41 @@ test('optional contact methods still reject malformed values and incomplete phon
   }
 });
 
+test('office locations round-trip separately from public labels and city coordinates', () => {
+  const place = { latitude: 44.2312, longitude: -76.486, countryCode: 'CA', regionCode: 'ON', city: 'Kingston' };
+  for (const office of [
+    { address: '123 Main Street, Kingston, ON, Canada', latitude: 44.232, longitude: -76.487 },
+    { address: 'a'.repeat(500), latitude: -90, longitude: -180 },
+    { address: 'North office', latitude: 90, longitude: 180 },
+    { address: 'Zero coordinates', latitude: 0, longitude: 0 },
+  ]) {
+    const role = { company: 'Company', title: 'Engineer', startDate: '2024', endDate: null,
+      location: 'Kingston, Ontario, Canada', place: { ...place, office } };
+    const content = { ...initialContent, profile: { ...initialContent.profile, experience: [role] } };
+    assert.deepEqual(parseContent(JSON.parse(serializeContent(content))), content);
+  }
+});
+
+test('office locations reject incomplete, malformed, unbounded, and city-less data', () => {
+  const office = { address: '123 Main Street', latitude: 44.232, longitude: -76.487 };
+  const place = { latitude: 44.2312, longitude: -76.486, countryCode: 'CA', regionCode: 'ON', city: 'Kingston', office };
+  const contentWithPlace = (value: unknown): unknown => ({ ...initialContent, profile: { ...initialContent.profile,
+    experience: [{ company: 'Company', title: 'Engineer', startDate: '2024', endDate: null,
+      location: 'Kingston, Ontario, Canada', place: value }] } });
+  for (const invalid of [null, '', [], {},
+    { latitude: 44, longitude: -76 }, { address: '123 Main Street', longitude: -76 }, { address: '123 Main Street', latitude: 44 },
+    ...['', ' \n\t ', 'a'.repeat(501), 123].map((address) => ({ ...office, address })),
+    ...[-90.001, 90.001, NaN, Infinity, -Infinity, '44', null].map((latitude) => ({ ...office, latitude })),
+    ...[-180.001, 180.001, NaN, Infinity, -Infinity, '-76', null].map((longitude) => ({ ...office, longitude })),
+    { ...office, unexpected: true },
+  ]) {
+    assert.throws(() => parseContent(contentWithPlace({ ...place, office: invalid })));
+  }
+  for (const city of [undefined, '', ' \t ', 'a'.repeat(501)]) {
+    assert.throws(() => parseContent(contentWithPlace({ ...place, city })));
+  }
+});
+
 test('content rejects invalid dates, unsafe links, incomplete and oversized publications', () => {
   for (const [key, value] of [['github', 'javascript:alert(1)'], ['linkedin', 'http://example.com'], ['phoneHref', 'javascript:alert(1)'], ['email', 'no-email']]) {
     assert.throws(() => parseContent({ ...initialContent, site: { ...initialContent.site, [key!]: value } }));

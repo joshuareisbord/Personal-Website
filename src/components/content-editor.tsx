@@ -140,7 +140,7 @@ export function ContentEditor({ initial, onSave, onDirty }: Props): ReactElement
               <MonthPicker label="Start date" value={entry.startDate} onChange={(value) => role(index, 'startDate', value)} />
               <MonthPicker label="End date" required={false} value={entry.endDate ?? ''} min={entry.startDate} onChange={(value) => role(index, 'endDate', value)} />
             </div>
-            <LocationPicker location={entry.location} place={entry.place} onChange={(location, place) => locate(index, location, place)} />
+            <LocationPicker key={JSON.stringify([entry.company, entry.title, entry.startDate])} location={entry.location} place={entry.place} onChange={(location, place) => locate(index, location, place)} />
             <EditorField label="Description" required={false} multiline value={entry.description ?? ''} onChange={(value) => role(index, 'description', value)} />
             <div className="flex flex-wrap gap-3">
               <button type="button" className={buttonClass} disabled={index === 0} onClick={() => {

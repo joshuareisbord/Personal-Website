@@ -79,7 +79,7 @@ test('React/Vite builds prerender populated profile HTML and local hydration ass
     const links = [...document.querySelectorAll<HTMLAnchorElement>('a[href]')];
     const socialLinks = links.filter((link) => /^(?:www\.)?(?:github|linkedin)\.com$/.test(new URL(link.href).hostname));
     assert.deepEqual(socialLinks.map((link) => new URL(link.href).hostname.replace(/^www\./, '')).sort(), ['github.com', 'linkedin.com']);
-    for (const link of socialLinks) assert.ok(link.closest('footer'), 'Social links must appear only in the footer.');
+    for (const link of socialLinks) assert.ok(link.closest('#contact'), 'Social links must appear in the contact section.');
     assert.equal(document.querySelector('#projects'), null, 'The obsolete projects anchor must be removed.');
     assert.ok(links.every((link) => !/view\s+projects/i.test(link.textContent ?? '')), 'Project CTAs must be removed.');
     assert.match(html, /Fixture O&#x27;Neil/);
