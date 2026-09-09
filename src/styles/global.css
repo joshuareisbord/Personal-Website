@@ -1,0 +1,41 @@
+@import "tailwindcss";
+@import "@fontsource/barlow/latin-400.css";
+@import "@fontsource/barlow/latin-500.css";
+@import "@fontsource/barlow/latin-600.css";
+@import "@fontsource/barlow/latin-800.css";
+@import "@fontsource/ibm-plex-mono/latin-400.css";
+
+@theme {
+  --font-sans: 'Barlow', sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+  --color-paper: #efeeea;
+  --color-ink: #181818;
+  --color-muted: #62625e;
+  --color-rule: #cccbc5;
+  --color-night: #141414;
+  --color-chalk: #f4f3ee;
+  --color-night-muted: #b6b5ae;
+  --color-night-rule: #42423f;
+  --color-gray-900: #141414;
+  --color-gray-800: #202020;
+  --color-gray-700: #383838;
+  --color-gray-600: #6b6b67;
+  --color-gray-500: #81817b;
+  --color-gray-400: #b6b5ae;
+  --color-gray-50: #f4f3ee;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+a:focus-visible, button:focus-visible { outline: 2px solid currentColor; outline-offset: 5px; }
+::selection { background: var(--color-ink); color: var(--color-paper); }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}

@@ -1,23 +1,26 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# Dependencies and generated output
+node_modules/
+/dist/
+/build/
+/.prerender/
+/.firebase/
+/coverage/
+/.playwright-cli/
+*.tsbuildinfo
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.js
+# Credentials and local configuration
+.env*
+!.env.example
+!.env.*.example
+.secrets/
 
-# testing
-/coverage
+# Keep old private imports and archives out of the repository
+/imports/
+*.zip
+*.csv
 
-# production
-/build
-
-# misc
+# Logs and local OS files
+*.log
+*-debug.log*
+logs/
 .DS_Store
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*

@@ -1,9 +1,55 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if
-          request.time < timestamp.date(2022, 2, 19);
+    function verifiedGoogle() {
+      return request.auth != null
+        && request.auth.token.email is string
+        && request.auth.token.email_verified == true
+        && request.auth.token.firebase.sign_in_provider == 'google.com';
+    }
+
+    function ownEmail() {
+      return request.auth.token.email.lower();
+    }
+
+    function owner() {
+      return verifiedGoogle()
+        && exists(/databases/$(database)/documents/websiteOwners/$(ownEmail()))
+        && get(/databases/$(database)/documents/websiteOwners/$(ownEmail())).data.keys().hasOnly(['enabled'])
+        && get(/databases/$(database)/documents/websiteOwners/$(ownEmail())).data.enabled == true;
+    }
+
+    function validOwner(email) {
+      return email == email.lower()
+        && email.size() <= 254
+        && email.matches('^[^/@\\s]+@[^/@\\s]+\\.[^/@\\s]+$')
+        && request.resource.data.keys().hasAll(['enabled'])
+        && request.resource.data.keys().hasOnly(['enabled'])
+        && request.resource.data.enabled == true;
+    }
+
+    function validContent() {
+      return request.resource.data.keys().hasAll(['payload', 'revision', 'updatedAt', 'updatedBy'])
+        && request.resource.data.keys().hasOnly(['payload', 'revision', 'updatedAt', 'updatedBy'])
+        && request.resource.data.payload is string
+        && request.resource.data.payload.size() <= 200000
+        && request.resource.data.revision is int
+        && request.resource.data.revision > 0
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.updatedBy == request.auth.uid;
+    }
+
+    match /website/content {
+      allow get: if true;
+      allow create: if owner() && validContent() && request.resource.data.revision == 1;
+      allow update: if owner() && validContent() && request.resource.data.revision == resource.data.revision + 1;
+    }
+
+    match /websiteOwners/{email} {
+      allow get: if owner() || (verifiedGoogle() && email == ownEmail());
+      allow list: if owner();
+      allow create, update: if owner() && validOwner(email);
+      allow delete: if owner() && email != ownEmail();
     }
   }
 }

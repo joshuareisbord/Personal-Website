@@ -1,46 +1,124 @@
-# Getting Started with Create React App
+# Personal website
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+React, Vite, and TypeScript website at [joshuareisbord.com/home](https://joshuareisbord.com/home), hosted on Firebase project `personal-website-f17c6`. Approved owners sign in with Google and edit public content through a Firestore-backed CMS. Pages are prerendered for the initial response and hydrated in the browser; no custom application server is deployed.
 
-## Available Scripts
+**Live CMS setup is pending.** No live Firebase configuration, first-owner creation, or rules deployment has been performed by this implementation. A successful local build does not establish production authorization.
 
-In the project directory, you can run:
+## Design
 
-### `npm start`
+The visual references are [Anduril](https://www.anduril.com/) and [Inversion](https://www.inversionspace.com/). The site uses a light paper background, black display typography, fine rules, and an original technical vector graphic. The graphic gently rotates and shifts as it scrolls through the viewport, stays still when scrolling stops, and respects reduced-motion preferences. Barlow and IBM Plex Mono are bundled locally. About and work experience remain the focus; one optional profile photo appears in About, and GitHub/LinkedIn links appear only in the footer. Project cards and project CTAs are removed.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Updated career wording and a profile photo still await owner input. The repository seed currently has `photo: null` and an empty experience list; it does not invent a portrait or new work history. These can be supplied through the owner CMS, with the seed/SEO update distinction described below.
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Local development
 
-### `npm test`
+Use Node 24, npm, and Java 21 for Firestore emulator tests. The development container includes Node and Java and forwards Vite development (5173), Vite preview (4173), Hosting (5002), Auth (9099), and Firestore (8080).
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+On macOS with Homebrew's `openjdk@21` installed, select it for the current shell without a global Java symlink:
 
-### `npm run build`
+```sh
+export JAVA_HOME="$(brew --prefix openjdk@21)/libexec/openjdk.jdk/Contents/Home"
+export PATH="$JAVA_HOME/bin:$PATH"
+```
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+```sh
+nvm install
+nvm use
+npm ci
+npm run dev
+```
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+Open [localhost:5173/home](http://localhost:5173/home). Without Firebase configuration the site shows its committed seed and disables editing.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+| Command | Purpose |
+| --- | --- |
+| `npm run check` | TypeScript validation |
+| `npm test` | Unit and render tests |
+| `npm run test:rules` | Firestore rules tests in the isolated `demo-personal-website` emulator project |
+| `npm run build` | Vite browser/SSR builds, static prerendering, and output verification |
+| `npm run verify` | Check, unit/render tests, and build |
+| `npm run preview` | Preview built assets on port 4173 |
+| `npm run hosting:preview` | Preview built assets with Firebase routing on port 5002 |
+| `npm run cms:emulators` | Start local demo Auth (9099) and Firestore (8080) |
+| `npm run cms:seed` | Enable the first owner in the local demo Firestore only |
+| `npm run deploy:rules` | Separate, manual Firestore rules deployment after the review below |
 
-### `npm run eject`
+`npm run build` uses `src/entry-server.tsx` and the ignored `.prerender/` directory only during the build. Hosting serves `dist/home.html`, `dist/index.html`, `dist/404.html`, and public assets. Build before running either preview command. Vite preview does not implement Firebase redirects; use [localhost:5002/home](http://localhost:5002/home) to check Hosting. Port 5002 avoids macOS AirPlay's port 5000 conflict.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+Copy `.env.example` to ignored `.env.local` and set the four Firebase web-app values for the project you intend to use:
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_APP_ID`
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+These values are public client configuration compiled into browser assets, not administrator credentials. Authorization comes from Firebase Auth and Firestore rules. Never put service-account private keys in `VITE_*` variables. See [Firebase API-key guidance](https://firebase.google.com/docs/projects/api-keys).
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+For isolated CMS testing, put these exact demo values in ignored `.env.local`:
 
-## Learn More
+```dotenv
+VITE_FIREBASE_API_KEY=demo-key
+VITE_FIREBASE_AUTH_DOMAIN=demo-personal-website.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=demo-personal-website
+VITE_FIREBASE_APP_ID=demo-app
+VITE_USE_FIREBASE_EMULATORS=true
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+Start Auth and Firestore in one terminal and leave them running:
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```sh
+npm run cms:emulators
+```
+
+In another terminal, bootstrap the demo owner and start or restart Vite:
+
+```sh
+npm run cms:seed
+npm run dev
+```
+
+The seed helper is hardcoded to `127.0.0.1:8080` and project `demo-personal-website`. It enables only `websiteOwners/joshuareisbord@gmail.com`; it does not publish content or create an Auth account. Open the local site and use the Google sign-in emulator popup with `joshuareisbord@gmail.com`, then edit and save to test publishing. The committed content remains visible until the first successful save.
+
+Enabling the emulator switch away from localhost/loopback is rejected: CMS initialization fails closed rather than connecting to a live backend. Keep it false in hosted builds. Emulator data and owner records are separate from production. The rules test command provisions its own test identities and data; run it separately from interactive emulator sessions because both use Firestore port 8080.
+
+## Configure the live CMS and first owner
+
+1. In the Firebase console, select `personal-website-f17c6`, register or identify its web app, and copy its actual API key, auth domain, project ID, and app ID. Do not infer missing values from the domain.
+2. Enable **Authentication → Sign-in method → Google** and choose the required support email. Under Authentication's authorized domains, include `joshuareisbord.com` and each hostname actually used for owner sign-in. Add `localhost` only when deliberately testing live Auth locally. The app uses Google's `signInWithPopup` flow; no hosted custom OAuth callback is needed. See [Firebase Google sign-in setup](https://firebase.google.com/docs/auth/web/google-signin).
+3. Use the project's default Firestore database. Before deploying rules, inventory the existing rules and consumers, back them up, and merge the website rules with any rules needed by other applications. **Do not blindly replace existing Firestore rules**: a rules deployment applies to the database, not just these two collections. Run `npm run test:rules`, authenticate the Firebase CLI as an authorized project administrator, confirm the target project, then separately run `npm run deploy:rules`.
+4. Bootstrap the first owner through the **Firestore console**, using collection `websiteOwners`, document ID **`joshuareisbord@gmail.com`**, and field **`enabled` of type boolean set to `true`**. The document path is `websiteOwners/joshuareisbord@gmail.com`. There is no browser self-registration or client bootstrap.
+5. Set the four public `VITE_FIREBASE_*` values under repository **Settings → Secrets and variables → Actions → Variables**. Deploy Hosting to bake them into the browser build. Keep `FIREBASE_SERVICE_ACCOUNT_PERSONAL_WEBSITE_F17C6` as an Actions **secret**.
+6. Open the site, sign in with the Google account `joshuareisbord@gmail.com`, edit the content, and explicitly save. Verify the saved content in a signed-out browser.
+
+Owners can add or remove other approved email addresses in the CMS. Addresses are normalized to lowercase and stored as `websiteOwners/{lowercaseemail}` with `{ enabled: true }`. Owners cannot remove themselves. Signing in with an unapproved Google account does not grant editing access; project administrators can repair the allowlist through the console if necessary.
+
+## Publishing and stored content
+
+Editing is a local draft until **Save** succeeds. Save publishes browser-visible content through Firestore without a Git commit or Hosting deployment. If authorization, connectivity, validation, or a conflicting revision prevents a save, resolve the reported failure before treating the draft as published.
+
+The service stores one document at `website/content`:
+
+| Field | Stored value |
+| --- | --- |
+| `payload` | JSON string containing validated `SiteContent` |
+| `revision` | Integer used for update consistency |
+| `updatedAt` | Firestore server timestamp |
+| `updatedBy` | Saving owner's Firebase Auth UID |
+
+Content is public; do not publish private information in this document. The owner allowlist is separate from public site content.
+
+The committed seed remains the fallback when there is no database content, no usable configuration, or offline/unavailable data. It also supplies the static HTML and SEO metadata. **CMS saves do not update prerendered HTML or static SEO.** Update the repository seed and rebuild/redeploy when the initial response, offline fallback, or static SEO must reflect new content.
+
+## Deployment, checks, and rollback
+
+Pull requests run `npm run test:rules` with Java 21 and `npm run verify`. All PR builds explicitly omit production Firebase client configuration, so preview editing is disabled and cannot write to the production database. Same-repository PRs receive seven-day Hosting previews after verification; forks receive checks only.
+
+The **Firebase production** workflow runs on pushes to `main` and manual **Run workflow** on `main`. It serializes jobs with `firebase-production`, checks out the latest `main` after acquiring the lock, tests rules, verifies/builds using public repository variables, and checks remote `main` again before deploying Hosting. If the remote revision advanced or deployment failed, resolve the failure and rerun the workflow. It has no schedule, content-import job, or bot commits. Rules are never deployed by the Hosting workflow.
+
+Production is blocked before the build if any of the four `VITE_FIREBASE_*` repository variables is missing or blank, or if `VITE_FIREBASE_PROJECT_ID` is not exactly `personal-website-f17c6`. Correct the repository variables and rerun the workflow. PR previews and local builds still support missing configuration with editing disabled.
+
+Hosting preserves `/` → `/home` (301), clean URLs without trailing slashes, and a genuine 404. Before cutover, exercise owner sign-in, approved-email management, failed/successful saves, signed-out reads, and navigation with emulators and then the authorized target project.
+
+For a Hosting regression, pause production runs, restore the previous release in Firebase Hosting history, and review/revert the source before resuming deployments. **Hosting rollback does not roll back Firestore content or the allowlist.** Restore content from a reviewed backup through an approved owner save, or use administrator recovery for database/allowlist problems. A revision number is not a content-history archive; keep backups before significant edits or rules changes.
+
+No existing cloud resources are deleted automatically. Keep ownership checks and verified backups for any later retirement. Dependency versions live in `package.json` and the lockfile; retain Node 24 typings and review fresh production/full audits when updating the toolchain.
