@@ -2,8 +2,10 @@ import { getApps, initializeApp } from 'firebase/app';
 import { connectAuthEmulator, getAuth, getIdTokenResult, GoogleAuthProvider, onAuthStateChanged, signInWithPopup, signOut as firebaseSignOut, type Auth } from 'firebase/auth';
 import { collection, connectFirestoreEmulator, deleteDoc, doc, getDocFromServer, getDocsFromServer, getFirestore, onSnapshot, runTransaction, serverTimestamp, setDoc, Timestamp, type DocumentSnapshot, type Firestore } from 'firebase/firestore';
 import { z } from 'zod';
+import { connectStorageEmulator, getDownloadURL, getStorage, ref, uploadBytes, type FirebaseStorage } from 'firebase/storage';
 
 import { parseContent, serializeContent, type SiteContent } from './content';
+import { validatePreparedPhoto } from './photo-upload';
 
 interface ContentSnapshot {
   content: SiteContent;
@@ -25,6 +27,7 @@ export interface Cms {
   listOwners(): Promise<string[]>;
   addOwner(email: string): Promise<void>;
   removeOwner(email: string): Promise<void>;
+  uploadPhoto(photo: Blob): Promise<string>;
   saveContent(content: SiteContent, expectedRevision: number): Promise<number>;
   loadContent(): Promise<ContentSnapshot | null>;
 }
@@ -61,7 +64,7 @@ function normalizeEmail(value: string): string {
   return email;
 }
 
-function createCms(auth: Auth, database: Firestore): Cms {
+function createCms(auth: Auth, database: Firestore, storage: FirebaseStorage | null, emulators: boolean): Cms {
   const contentReference = doc(database, 'website/content');
   const owners = collection(database, 'websiteOwners');
 
@@ -135,6 +138,19 @@ function createCms(auth: Auth, database: Firestore): Cms {
         await deleteDoc(doc(owners, target));
       });
     },
+    uploadPhoto(photo) {
+      return safe('Your photo could not be uploaded. Check your connection and owner access, then try saving again. Your current photo is unchanged.', async () => {
+        if (!storage) throw new CmsError('Photo uploads are not configured. Set the Firebase Storage bucket before uploading. You can still use a photo link.');
+        try { validatePreparedPhoto(photo); } catch { throw new CmsError('Choose a valid photo again before saving.'); }
+        const user = await requireGoogle();
+        const target = ref(storage, `website-profile/${user.uid}/${crypto.randomUUID()}.jpg`);
+        await uploadBytes(target, photo, { contentType: 'image/jpeg', cacheControl: 'public,max-age=31536000,immutable' });
+        const url = new URL(await getDownloadURL(target));
+        // Store the same HTTPS contract in demo content; rendering maps it locally.
+        if (emulators) { url.protocol = 'https:'; url.hostname = 'firebasestorage.googleapis.com'; url.port = ''; }
+        return url.href;
+      });
+    },
     saveContent(content, expectedRevision) {
       return safe('Content could not be saved. Check your access and connection, then try again.', async () => {
         if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || expectedRevision >= Number.MAX_SAFE_INTEGER) {
@@ -183,14 +199,17 @@ export function getCms(): Cms | null {
   }
   try {
     const existingApp = getApps().find((app) => app.name === 'website-cms');
-    const app = existingApp ?? initializeApp(config, 'website-cms');
+    const storageBucket = env['VITE_FIREBASE_STORAGE_BUCKET'];
+    const app = existingApp ?? initializeApp({ ...config, storageBucket }, 'website-cms');
     const auth = getAuth(app);
     const database = getFirestore(app);
+    const storage = typeof storageBucket === 'string' && storageBucket.trim() ? getStorage(app) : null;
     if (emulators && !existingApp) {
       connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
       connectFirestoreEmulator(database, '127.0.0.1', 8080);
+      if (storage) connectStorageEmulator(storage, '127.0.0.1', 9199);
     }
-    cachedCms = createCms(auth, database);
+    cachedCms = createCms(auth, database, storage, emulators);
     return cachedCms;
   } catch {
     throw new Error('The editor could not initialize. Check the Firebase configuration.');

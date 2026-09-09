@@ -14,7 +14,7 @@ Footer social links use the GitHub and LinkedIn SVG paths imported from Material
 
 ## Local development
 
-Use Node 26.8.1 or a newer Node 26 release, npm, and Java 21 for Firestore emulator tests. The development container includes Node and Java and forwards Vite development (5173), Vite preview (4173), Hosting (5002), Auth (9099), and Firestore (8080). GitHub Actions reads the runtime from `.nvmrc`.
+Use Node 26.8.1 or a newer Node 26 release, npm, and Java 21 for Firestore and Storage emulator tests. The development container includes Node and Java and forwards Vite development (5173), Vite preview (4173), Hosting (5002), Auth (9099), Firestore (8080), and Storage (9199). GitHub Actions reads the runtime from `.nvmrc`.
 
 On macOS with Homebrew's `openjdk@21` installed, select it for the current shell without a global Java symlink:
 
@@ -36,26 +36,28 @@ Open [localhost:5173/](http://localhost:5173/). Without Firebase configuration t
 | --- | --- |
 | `npm run check` | TypeScript validation |
 | `npm test` | Unit and render tests |
-| `npm run test:rules` | Firestore rules tests in the isolated `demo-personal-website` emulator project |
+| `npm run test:rules` | Firestore and Storage rules tests in the isolated `demo-personal-website` emulator project |
 | `npm run build` | Vite browser/SSR builds, static prerendering, and output verification |
 | `npm run verify` | Check, unit/render tests, and build |
 | `npm run preview` | Preview built assets on port 4173 |
 | `npm run hosting:preview` | Preview built assets with Firebase routing on port 5002 |
-| `npm run cms:emulators` | Start local demo Auth (9099) and Firestore (8080) |
+| `npm run cms:emulators` | Start local demo Auth (9099), Firestore (8080), and Storage (9199) |
 | `npm run cms:seed` | Enable the first owner in the local demo Firestore only |
 | `npm run geography:prepare` | Rebuild the committed geographic outlines and city lookup assets; see `docs/geography.md` for sources and licenses |
 | `npm run deploy:rules` | Separate, manual Firestore rules deployment after the review below |
+| `npm run deploy:storage-rules` | Separate, manual Storage rules deployment after reviewing the bucket rules and permissions |
 
 `npm run build` uses `src/entry-server.tsx` and the ignored `.prerender/` directory only during the build. Hosting serves `dist/index.html`, `dist/404.html`, and public assets. Build before running either preview command. Vite preview does not implement Firebase redirects; use [localhost:5002/](http://localhost:5002/) to check Hosting. Port 5002 avoids macOS AirPlay's port 5000 conflict.
 
-Copy `.env.example` to ignored `.env.local` and set the four Firebase web-app values for the project you intend to use:
+Copy `.env.example` to ignored `.env.local` and set the five Firebase web-app values for the project you intend to use:
 
 - `VITE_FIREBASE_API_KEY`
 - `VITE_FIREBASE_AUTH_DOMAIN`
 - `VITE_FIREBASE_PROJECT_ID`
 - `VITE_FIREBASE_APP_ID`
+- `VITE_FIREBASE_STORAGE_BUCKET`
 
-These values are public client configuration compiled into browser assets, not administrator credentials. Authorization comes from Firebase Auth and Firestore rules. Never put service-account private keys in `VITE_*` variables. See [Firebase API-key guidance](https://firebase.google.com/docs/projects/api-keys).
+These values are public client configuration compiled into browser assets, not administrator credentials. Authorization comes from Firebase Auth, Firestore rules, and Storage rules. Never put service-account private keys in `VITE_*` variables. See [Firebase API-key guidance](https://firebase.google.com/docs/projects/api-keys).
 
 For isolated CMS testing, put these exact demo values in ignored `.env.local`:
 
@@ -64,10 +66,11 @@ VITE_FIREBASE_API_KEY=demo-key
 VITE_FIREBASE_AUTH_DOMAIN=demo-personal-website.firebaseapp.com
 VITE_FIREBASE_PROJECT_ID=demo-personal-website
 VITE_FIREBASE_APP_ID=demo-app
+VITE_FIREBASE_STORAGE_BUCKET=demo-personal-website.appspot.com
 VITE_USE_FIREBASE_EMULATORS=true
 ```
 
-Start Auth and Firestore in one terminal and leave them running:
+Start Auth, Firestore, and Storage in one terminal and leave them running:
 
 ```sh
 npm run cms:emulators
@@ -86,16 +89,28 @@ Enabling the emulator switch away from localhost/loopback is rejected: CMS initi
 
 ## Configure the live CMS and first owner
 
-1. In the Firebase console, select `personal-website-f17c6`, register or identify its web app, and copy its actual API key, auth domain, project ID, and app ID. Do not infer missing values from the domain.
+1. In the Firebase console, select `personal-website-f17c6`, register or identify its web app, and copy its actual API key, auth domain, project ID, app ID, and Storage bucket. Do not infer missing values from the domain.
 2. Enable **Authentication → Sign-in method → Google** and choose the required support email. Under Authentication's authorized domains, include `joshuareisbord.com` and each hostname actually used for owner sign-in. Add `localhost` only when deliberately testing live Auth locally. The app uses Google's `signInWithPopup` flow; no hosted custom OAuth callback is needed. See [Firebase Google sign-in setup](https://firebase.google.com/docs/auth/web/google-signin).
 3. Use the project's default Firestore database. Before deploying rules, inventory the existing rules and consumers, back them up, and merge the website rules with any rules needed by other applications. **Do not blindly replace existing Firestore rules**: a rules deployment applies to the database, not just these two collections. Run `npm run test:rules`, authenticate the Firebase CLI as an authorized project administrator, confirm the target project, then separately run `npm run deploy:rules`.
 4. Bootstrap the first owner through the **Firestore console**, using collection `websiteOwners`, document ID **`joshuareisbord@gmail.com`**, and field **`enabled` of type boolean set to `true`**. The document path is `websiteOwners/joshuareisbord@gmail.com`. There is no browser self-registration or client bootstrap.
-5. Set the four public `VITE_FIREBASE_*` values under repository **Settings → Secrets and variables → Actions → Variables**. Deploy Hosting to bake them into the browser build. Keep `FIREBASE_SERVICE_ACCOUNT_PERSONAL_WEBSITE_F17C6` as an Actions **secret**.
+5. Set the five public `VITE_FIREBASE_*` values under repository **Settings → Secrets and variables → Actions → Variables**. Deploy Hosting to bake them into the browser build. Keep `FIREBASE_SERVICE_ACCOUNT_PERSONAL_WEBSITE_F17C6` as an Actions **secret**.
 6. Open the site, sign in with the Google account `joshuareisbord@gmail.com`, edit the content, and explicitly save. Verify the saved content in a signed-out browser.
 
 Owners can add or remove other approved email addresses in the CMS. Addresses are normalized to lowercase and stored as `websiteOwners/{lowercaseemail}` with `{ enabled: true }`. Owners cannot remove themselves. Signing in with an unapproved Google account does not grant editing access; project administrators can repair the allowlist through the console if necessary.
 
-The September 9 production inventory found only the legacy `projects` collection. Its public reads and writes by the two previously authorized UIDs are preserved under `/projects/{document=**}`; these legacy permissions do not grant access to the CMS or owner allowlist. Storage rules and existing data were left unchanged. The pre-migration Firestore and Storage rulesets, release references, and authorized domains were backed up outside the repository under `~/Documents/Firebase Backups/personal-website-f17c6/2026-09-09/`. These are configuration backups, not a database export. Retire legacy access only after its consumers and data have been reviewed separately.
+The September 9 production inventory found only the legacy `projects` collection. Its public reads and writes by the two previously authorized UIDs are preserved under `/projects/{document=**}`; these legacy permissions do not grant access to the CMS or owner allowlist. Legacy Storage permissions and existing data are preserved outside the reserved `website-profile/` upload prefix. The pre-migration Firestore and Storage rulesets, release references, and authorized domains were backed up outside the repository under `~/Documents/Firebase Backups/personal-website-f17c6/2026-09-09/`. These are configuration backups, not a database export. Retire legacy access only after its consumers and data have been reviewed separately.
+
+## Profile photo uploads
+
+In **Owners Login → Profile & bio**, choose **Upload photo**, add a description, and select **Save and publish**. The editor previews your selection before uploading. PNG, JPEG, and WebP files up to 10 MiB and 40 megapixels are accepted; the browser resizes to at most 1200 × 1200, strips source metadata by redrawing, and creates a JPEG no larger than 1 MiB. Transparent areas become white. **Revert upload** keeps the previous link; **Remove photo** hides the image after saving. An HTTPS photo link remains available as an alternative.
+
+Uploads use the existing `personal-website-f17c6.appspot.com` Firebase Storage bucket. `VITE_FIREBASE_STORAGE_BUCKET` is public configuration, included in the production Actions variables. The bucket and project ownership were verified, prior rules and IAM policy were backed up outside the repository under `~/Documents/Firebase Backups/personal-website-f17c6/2026-09-09/photo-upload/`, and the scoped upload rules were deployed. Storage's service account needs `roles/firebaserules.firestoreServiceAgent` to check the existing `websiteOwners` allowlist; verify this cross-service permission when setting up another project. No new service-account key is needed. See [cross-service Storage rules](https://firebase.google.com/docs/storage/security/rules-conditions#enhance_with_cloud_firestore).
+
+Each upload receives a unique `website-profile/{ownerUid}/{uuid}.jpg` path. Rules allow creation only for verified, enabled Google owners, in their own UID folder, with JPEG content type and a 1 MiB limit. Photos are public to read, with no public listing. Browser clients cannot overwrite or delete uploads. Legacy authenticated Storage access is retained outside this prefix. Review and back up all bucket rules before a later `npm run deploy:storage-rules`; Hosting workflows do not deploy rules.
+
+The content document changes only after the upload succeeds and the normal revision check passes. Failed uploads preserve the published photo and local draft. If uploading succeeds but publishing fails, retrying the unchanged draft reuses that upload. Discarded drafts can leave unused objects, and old photos remain accessible at their URLs after replacement/removal. An administrator can remove those after checking they are no longer referenced by current content or backups. The site does not automatically delete cloud assets.
+
+Local demo uploads use Storage port 9199. Demo content still stores HTTPS-formatted photo URLs; the explicit localhost emulator mode maps only this demo bucket's upload URLs to the local emulator. Production never uses this mapping. Keep the emulator switch disabled on hosted builds.
 
 ## Publishing and stored content
 
@@ -128,11 +143,11 @@ Pull requests run `npm run test:rules` with Java 21 and `npm run verify`. All PR
 
 The **Firebase production** workflow runs on pushes to `main` and manual **Run workflow** on `main`. It serializes jobs with `firebase-production`, checks out the latest `main` after acquiring the lock, tests rules, verifies/builds using public repository variables, and checks remote `main` again before deploying Hosting. If the remote revision advanced or deployment failed, resolve the failure and rerun the workflow. It has no schedule, content-import job, or bot commits. Rules are never deployed by the Hosting workflow.
 
-Production is blocked before the build if any of the four `VITE_FIREBASE_*` repository variables is missing or blank, or if `VITE_FIREBASE_PROJECT_ID` is not exactly `personal-website-f17c6`. Correct the repository variables and rerun the workflow. PR previews and local builds still support missing configuration with editing disabled.
+Production is blocked before the build if any of the five `VITE_FIREBASE_*` repository variables is missing or blank, or if `VITE_FIREBASE_PROJECT_ID` is not exactly `personal-website-f17c6`. Correct the repository variables and rerun the workflow. PR previews and local builds still support missing configuration with editing disabled.
 
 Hosting serves the website directly at `/`. Legacy `/home`, `/home/`, and `/home.html` URLs redirect to `/` (301); clean URLs and a genuine 404 remain enabled. Before cutover, exercise owner sign-in, approved-email management, failed/successful saves, signed-out reads, and navigation with emulators and then the authorized target project.
 
-For a Hosting regression, pause production runs, restore the previous release in Firebase Hosting history, and review/revert the source before resuming deployments. **Hosting rollback does not roll back Firestore content or the allowlist.** Restore content from a reviewed backup through an approved owner save, or use administrator recovery for database/allowlist problems. A revision number is not a content-history archive; keep backups before significant edits or rules changes.
+For a Hosting regression, pause production runs, restore the previous release in Firebase Hosting history, and review/revert the source before resuming deployments. **Hosting rollback does not roll back Firestore content, the allowlist, or uploaded photos.** Restore content from a reviewed backup through an approved owner save, or use administrator recovery for database/allowlist problems. A revision number is not a content-history archive; keep backups before significant edits or rules changes.
 
 Versions before the globe feature reject the new optional `experience[].place` field. Before rolling back to those versions, export a content backup and use a reviewed administrator migration to remove only each role's `place` field, retaining the original location labels. Prefer reverting presentation changes while keeping the updated parser so existing coordinates remain usable.
 

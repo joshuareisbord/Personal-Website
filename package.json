@@ -15,11 +15,12 @@
     "test": "tsx --test tests/content/*.test.ts tests/render/*.test.ts",
     "verify": "npm run check && npm test && npm run build",
     "hosting:preview": "firebase emulators:start --only hosting",
-    "test:rules": "firebase emulators:exec --only firestore --project demo-personal-website \"tsx --test tests/cms/firestore.test.ts\"",
-    "cms:emulators": "firebase emulators:start --only auth,firestore --project demo-personal-website",
+    "test:rules": "firebase emulators:exec --only firestore,storage --project demo-personal-website \"tsx --test --test-concurrency=1 tests/cms/*.test.ts\"",
+    "cms:emulators": "firebase emulators:start --only auth,firestore,storage --project demo-personal-website",
     "deploy:rules": "firebase deploy --only firestore:rules --project personal-website-f17c6",
     "cms:seed": "tsx scripts/seed-emulator.ts",
-    "geography:prepare": "tsx scripts/prepare-geography.ts"
+    "geography:prepare": "tsx scripts/prepare-geography.ts",
+    "deploy:storage-rules": "firebase deploy --only storage --project personal-website-f17c6"
   },
   "dependencies": {
     "@fontsource/barlow": "^5.3.0",

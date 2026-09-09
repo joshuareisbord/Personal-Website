@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactElement } from 'react';
 
 import { getCms } from '../lib/cms';
-import type { SiteContent } from '../lib/content';
+import { parseContent, type SiteContent } from '../lib/content';
 import { buttonClass, ContentEditor } from './content-editor';
 import { OwnerAccounts } from './owner-accounts';
 
@@ -13,6 +13,7 @@ export default function OwnerPanel({ fallback, onClose }: Props): ReactElement {
   const [cms] = useState(() => { try { return getCms(); } catch { return null; } });
   const dialog = useRef<HTMLDialogElement>(null);
   const authGeneration = useRef(0);
+  const uploadedPhoto = useRef<{ file: Blob; path: string } | null>(null);
   const [draft, setDraft] = useState<AuthorizedDraft | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [status, setStatus] = useState('');
@@ -31,6 +32,7 @@ export default function OwnerPanel({ fallback, onClose }: Props): ReactElement {
     if (!cms) return;
     const unsubscribe = cms.subscribeAuth((user) => {
       const current = ++authGeneration.current;
+      uploadedPhoto.current = null;
       setDraft(null); setEmail(user?.email ?? null); setStatus(''); setLoading(Boolean(user)); setDirty(false); setPublishing(false);
       if (!user) return;
       void (async () => {
@@ -73,12 +75,19 @@ export default function OwnerPanel({ fallback, onClose }: Props): ReactElement {
       {loading && <p role="status" className="py-4 font-mono text-sm text-muted">Checking owner access…</p>}
       {status && <p role="status" className="my-5 border border-rule p-4 leading-relaxed">{status}</p>}
       {draft && <>
-        <ContentEditor key={draft.email} initial={draft.content} onDirty={setDirty} onSave={async (content) => {
+        <ContentEditor key={draft.email} initial={draft.content} onDirty={setDirty} onSave={async (content, photo) => {
           const generation = authGeneration.current;
           setPublishing(true);
           try {
+            if (photo) {
+              const path = uploadedPhoto.current?.file === photo ? uploadedPhoto.current.path : await cms.uploadPhoto(photo);
+              if (generation !== authGeneration.current) throw new Error('Your sign-in changed. Reopen the editor before publishing.');
+              uploadedPhoto.current = { file: photo, path };
+              content = parseContent({ ...content, profile: { ...content.profile, photo: { ...content.profile.photo, path } } });
+            }
             const revision = await cms.saveContent(content, draft.revision);
-            if (generation === authGeneration.current) setDraft({ ...draft, content, revision });
+            if (generation === authGeneration.current) { setDraft({ ...draft, content, revision }); uploadedPhoto.current = null; }
+            return content;
           } finally { if (generation === authGeneration.current) setPublishing(false); }
         }} />
         <OwnerAccounts cms={cms} currentEmail={draft.email} />

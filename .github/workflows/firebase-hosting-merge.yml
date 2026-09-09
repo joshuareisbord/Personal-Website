@@ -33,7 +33,7 @@ jobs:
           java-version: '21'
 
       - run: npm ci
-      - name: Test Firestore rules in an isolated demo project
+      - name: Test Firestore and Storage rules in isolated demo projects
         run: npm run test:rules
 
       - name: Check production Firebase configuration
@@ -42,8 +42,9 @@ jobs:
           VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}
           VITE_FIREBASE_PROJECT_ID: ${{ vars.VITE_FIREBASE_PROJECT_ID }}
           VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ vars.VITE_FIREBASE_STORAGE_BUCKET }}
         run: |
-          for firebase_variable in VITE_FIREBASE_API_KEY VITE_FIREBASE_AUTH_DOMAIN VITE_FIREBASE_PROJECT_ID VITE_FIREBASE_APP_ID; do
+          for firebase_variable in VITE_FIREBASE_API_KEY VITE_FIREBASE_AUTH_DOMAIN VITE_FIREBASE_PROJECT_ID VITE_FIREBASE_APP_ID VITE_FIREBASE_STORAGE_BUCKET; do
             if [[ ! "${!firebase_variable}" =~ [^[:space:]] ]]; then
               echo "::error::Set repository variable $firebase_variable before deploying production. See README.md."
               exit 1
@@ -60,6 +61,7 @@ jobs:
           VITE_FIREBASE_AUTH_DOMAIN: ${{ vars.VITE_FIREBASE_AUTH_DOMAIN }}
           VITE_FIREBASE_PROJECT_ID: ${{ vars.VITE_FIREBASE_PROJECT_ID }}
           VITE_FIREBASE_APP_ID: ${{ vars.VITE_FIREBASE_APP_ID }}
+          VITE_FIREBASE_STORAGE_BUCKET: ${{ vars.VITE_FIREBASE_STORAGE_BUCKET }}
           VITE_USE_FIREBASE_EMULATORS: 'false'
         run: npm run verify
 

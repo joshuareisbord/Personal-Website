@@ -1,0 +1,26 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function owner() {
+      return request.auth != null
+        && request.auth.token.email is string
+        && request.auth.token.email_verified == true
+        && request.auth.token.firebase.sign_in_provider == 'google.com'
+        && firestore.get(/databases/(default)/documents/websiteOwners/$(request.auth.token.email.lower())).data == {'enabled': true};
+    }
+
+    // Immutable photos: publishing a replacement must not change an older URL.
+    match /website-profile/{uid}/{file} {
+      allow get: if true;
+      allow create: if resource == null && owner() && uid == request.auth.uid
+        && file.matches('^[a-f0-9-]{36}[.]jpg$')
+        && request.resource.size > 0 && request.resource.size <= 1048576
+        && request.resource.contentType == 'image/jpeg';
+    }
+
+    // Preserve the existing app's permissions outside the new reserved prefix.
+    match /{topLevel}/{remaining=**} {
+      allow read, write: if topLevel != 'website-profile' && request.auth != null;
+    }
+  }
+}
