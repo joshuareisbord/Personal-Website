@@ -10,31 +10,49 @@ export function SignalStudy(): ReactElement {
     if (!region || !drawing) return;
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let frame = 0;
-    const update = (): void => {
+    let lastScroll = window.scrollY;
+    let current = 0;
+    let from = 0;
+    let target = 0;
+    let startedAt = 0;
+    const update = (timestamp: number): void => {
       frame = 0;
+      const progress = Math.min(1, Math.max(0, (timestamp - startedAt) / 180));
+      current = from + (target - from) * (1 - (1 - progress) ** 3);
+      drawing.setAttribute('transform', `translate(865 ${240 + current * 8}) rotate(${-24 + current * 3})`);
+      if (progress < 1) frame = window.requestAnimationFrame(update);
+    };
+    const scroll = (): void => {
+      const delta = window.scrollY - lastScroll;
+      lastScroll = window.scrollY;
+      if (reducedMotion.matches || delta === 0) return;
       const bounds = region.getBoundingClientRect();
       if (bounds.bottom < 0 || bounds.top > window.innerHeight) return;
-      const progress = Math.max(-1, Math.min(1,
-        (window.innerHeight / 2 - bounds.top - bounds.height / 2) / ((window.innerHeight + bounds.height) / 2)));
-      drawing.setAttribute('transform', `translate(865 ${240 + progress * 12}) rotate(${-24 + progress * 5})`);
+      const next = Math.max(-1, Math.min(1, target + delta / Math.max(1, window.innerHeight + bounds.height)));
+      if (next === target) return;
+      from = current;
+      target = next;
+      startedAt = window.performance.now();
+      if (!frame) frame = window.requestAnimationFrame(update);
     };
-    const schedule = (): void => {
-      if (!reducedMotion.matches && !frame) frame = window.requestAnimationFrame(update);
-    };
-    const preferenceChanged = (): void => {
+    const resize = (): void => {
+      lastScroll = window.scrollY;
       window.cancelAnimationFrame(frame);
       frame = 0;
-      drawing.setAttribute('transform', 'translate(865 240) rotate(-24)');
-      schedule();
+      target = current;
     };
-    window.addEventListener('scroll', schedule, { passive: true });
-    window.addEventListener('resize', schedule, { passive: true });
+    const preferenceChanged = (): void => {
+      resize();
+      current = from = target = 0;
+      drawing.setAttribute('transform', 'translate(865 240) rotate(-24)');
+    };
+    window.addEventListener('scroll', scroll, { passive: true });
+    window.addEventListener('resize', resize, { passive: true });
     reducedMotion.addEventListener('change', preferenceChanged);
-    schedule();
     return () => {
       window.cancelAnimationFrame(frame);
-      window.removeEventListener('scroll', schedule);
-      window.removeEventListener('resize', schedule);
+      window.removeEventListener('scroll', scroll);
+      window.removeEventListener('resize', resize);
       reducedMotion.removeEventListener('change', preferenceChanged);
     };
   }, []);
