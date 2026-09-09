@@ -2,7 +2,7 @@
 
 React, Vite, and TypeScript website at [joshuareisbord.com/home](https://joshuareisbord.com/home), hosted on Firebase project `personal-website-f17c6`. Approved owners sign in with Google and edit public content through a Firestore-backed CMS. Pages are prerendered for the initial response and hydrated in the browser; no custom application server is deployed.
 
-**Live CMS setup is pending.** No live Firebase configuration, first-owner creation, or rules deployment has been performed by this implementation. A successful local build does not establish production authorization.
+**Live CMS configured on September 9, 2026.** Google sign-in is enabled, `joshuareisbord.com` is authorized, the tested Firestore rules are deployed, and `joshuareisbord@gmail.com` is enabled as the first owner. Hosting builds use the verified public Firebase configuration from GitHub Actions variables. The first owner sign-in and content save on the live site remain to be verified by the owner; no production content has been seeded automatically.
 
 ## Design
 
@@ -91,6 +91,8 @@ Enabling the emulator switch away from localhost/loopback is rejected: CMS initi
 6. Open the site, sign in with the Google account `joshuareisbord@gmail.com`, edit the content, and explicitly save. Verify the saved content in a signed-out browser.
 
 Owners can add or remove other approved email addresses in the CMS. Addresses are normalized to lowercase and stored as `websiteOwners/{lowercaseemail}` with `{ enabled: true }`. Owners cannot remove themselves. Signing in with an unapproved Google account does not grant editing access; project administrators can repair the allowlist through the console if necessary.
+
+The September 9 production inventory found only the legacy `projects` collection. Its public reads and writes by the two previously authorized UIDs are preserved under `/projects/{document=**}`; these legacy permissions do not grant access to the CMS or owner allowlist. Storage rules and existing data were left unchanged. The pre-migration Firestore and Storage rulesets, release references, and authorized domains were backed up outside the repository under `~/Documents/Firebase Backups/personal-website-f17c6/2026-09-09/`. These are configuration backups, not a database export. Retire legacy access only after its consumers and data have been reviewed separately.
 
 ## Publishing and stored content
 

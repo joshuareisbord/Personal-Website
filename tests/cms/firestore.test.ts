@@ -135,4 +135,20 @@ describe('CMS Firestore access rules', { skip: !emulatorHost, concurrency: false
     batch.set(doc(db, 'website/content'), { payload: '{}', revision: 2, updatedAt: serverTimestamp(), updatedBy: 'outsider' });
     await assertFails(batch.commit());
   });
+
+  test('legacy project access is preserved without granting CMS or unrelated collection access', async () => {
+    const publicDb = environment.unauthenticatedContext().firestore();
+    await assertSucceeds(getDocs(collection(publicDb, 'projects')));
+    await assertFails(setDoc(doc(publicDb, 'projects/example'), { title: 'Denied' }));
+    for (const uid of ['0ePINre65yeCTJG7EcEA8oCweOT2', 'BgQIemYzEjhBvqTSS9HHQ20lrWR2']) {
+      const legacyDb = authenticated(uid, 'legacy@example.test');
+      await assertSucceeds(setDoc(doc(legacyDb, 'projects/example'), { title: 'Legacy project' }));
+      await assertSucceeds(setDoc(doc(legacyDb, 'projects/example/details/metadata'), { version: 1 }));
+      await assertFails(setDoc(doc(legacyDb, 'websiteOwners/legacy@example.test'), { enabled: true }));
+      await assertFails(getDocs(collection(legacyDb, 'websiteOwners')));
+      await assertFails(setDoc(doc(legacyDb, 'website/content'), { payload: '{}', revision: 2, updatedAt: serverTimestamp(), updatedBy: uid }));
+      await assertFails(setDoc(doc(legacyDb, 'unrelated/document'), { enabled: true }));
+    }
+    await assertFails(setDoc(doc(authenticated('outsider', 'outsider@example.test'), 'projects/example'), { title: 'Denied' }));
+  });
 });
