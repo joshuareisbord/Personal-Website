@@ -8,8 +8,8 @@ import { renderToString } from 'react-dom/server';
 
 import { SignalStudy } from '../../src/components/signal-study';
 
-test('scroll motion keeps its server pose on load, eases user scrolling, and respects reduced motion', async () => {
-  const dom = new JSDOM(`<div id="test">${renderToString(createElement(SignalStudy))}</div>`);
+test('idle motion accelerates with scrolling, reverses upward, and pauses when not visible or reduced', async () => {
+  const dom = new JSDOM(`<div id="test">${renderToString(createElement(SignalStudy))}</div>`, { pretendToBeVisual: true });
   const { window } = dom;
   const previous = new Map<string, PropertyDescriptor | undefined>();
   for (const [key, value] of Object.entries({ window, document: window.document, IS_REACT_ACT_ENVIRONMENT: true })) {
@@ -28,9 +28,11 @@ test('scroll motion keeps its server pose on load, eases user scrolling, and res
   Object.defineProperty(window.performance, 'now', { value: () => now });
   const host = window.document.getElementById('test')!;
   const region = host.firstElementChild!;
-  region.getBoundingClientRect = () => ({ top: 150, bottom: 550, height: 400, width: 1400, left: 0, right: 1400, x: 0, y: 150, toJSON: () => ({}) });
+  let visible = true;
+  region.getBoundingClientRect = () => ({ top: visible ? 150 : -500, bottom: visible ? 550 : -100, height: 400, width: 1400, left: 0, right: 1400, x: 0, y: 150, toJSON: () => ({}) });
   const drawing = host.querySelector('g[transform]')!;
   const initial = drawing.getAttribute('transform');
+  const angle = (): number => Number(drawing.getAttribute('transform')?.match(/rotate\(([^)]+)\)/)?.[1]);
   const advance = (): void => {
     now += 16;
     const pending = [...frames.values()]; frames.clear();
@@ -43,33 +45,57 @@ test('scroll motion keeps its server pose on load, eases user scrolling, and res
   let root: ReturnType<typeof hydrateRoot> | undefined;
   try {
     await act(async () => { root = hydrateRoot(host, createElement(SignalStudy)); });
-    assert.equal(frames.size, 0, 'Hydration must not schedule an initial pose change.');
+    assert.equal(frames.size, 1, 'Visible graphics start one idle animation loop.');
     assert.equal(drawing.getAttribute('transform'), initial);
-    scroll(200);
-    assert.equal(drawing.getAttribute('transform'), initial, 'A scroll must not synchronously jump the drawing.');
-    assert.equal(frames.size, 1);
     advance();
-    const firstFrame = drawing.getAttribute('transform');
-    assert.notEqual(firstFrame, initial);
-    for (let frame = 0; frame < 30; frame++) advance();
-    const settled = drawing.getAttribute('transform');
-    assert.notEqual(settled, firstFrame, 'Scrolling should ease across several frames.');
-    assert.equal(frames.size, 0, 'Motion must stop after scrolling settles.');
+    assert.equal(drawing.getAttribute('transform'), initial, 'The first frame must preserve the server pose.');
+    advance();
+    const idleStep = angle() + 24;
+    assert.ok(idleStep > 0 && idleStep < 0.02, 'Idle motion must be slow and forward.');
+    const beforeScroll = drawing.getAttribute('transform');
     scroll(200);
+    assert.equal(drawing.getAttribute('transform'), beforeScroll, 'Scrolling must not synchronously jump the drawing.');
+    assert.equal(frames.size, 1);
+    const beforeDown = angle();
+    advance();
+    assert.ok(angle() - beforeDown > idleStep * 2, 'Downward scrolling accelerates forward.');
+    scroll(100);
+    const beforeUp = angle();
+    advance();
+    assert.ok(angle() < beforeUp, 'Upward scrolling reverses motion immediately on the next frame.');
+    for (let frame = 0; frame < 180; frame++) advance();
+    const afterCoast = angle();
+    advance();
+    assert.ok(Math.abs(angle() - afterCoast - idleStep) < 0.001, 'Scroll momentum settles back to idle speed.');
+    const beforeResize = drawing.getAttribute('transform');
     window.dispatchEvent(new window.Event('resize'));
-    assert.equal(frames.size, 0, 'Unchanged scroll and resizing must not animate.');
-    assert.equal(drawing.getAttribute('transform'), settled);
+    assert.equal(drawing.getAttribute('transform'), beforeResize, 'Resizing preserves the current pose.');
     for (let offset = 210; offset <= 300; offset += 10) scroll(offset);
     assert.equal(frames.size, 1, 'Rapid scroll events share one animation frame.');
+    visible = false;
+    scroll(1000);
+    assert.equal(frames.size, 0, 'Offscreen graphics pause.');
+    const paused = drawing.getAttribute('transform');
+    now += 60_000;
+    visible = true;
+    scroll(200);
+    advance();
+    assert.equal(drawing.getAttribute('transform'), paused, 'Returning onscreen does not jump ahead.');
+    Object.defineProperty(window.document, 'hidden', { value: true, configurable: true });
+    window.document.dispatchEvent(new window.Event('visibilitychange'));
+    assert.equal(frames.size, 0, 'Hidden tabs pause.');
+    Object.defineProperty(window.document, 'hidden', { value: false, configurable: true });
+    window.document.dispatchEvent(new window.Event('visibilitychange'));
+    assert.equal(frames.size, 1);
     reduced = true;
     preference.dispatchEvent(new window.Event('change'));
     assert.equal(frames.size, 0);
-    assert.equal(drawing.getAttribute('transform'), initial);
+    assert.equal(drawing.getAttribute('transform'), paused, 'Enabling reduced motion freezes the current pose without a jump.');
     scroll(400);
     assert.equal(frames.size, 0);
     reduced = false;
     preference.dispatchEvent(new window.Event('change'));
-    assert.equal(frames.size, 0, 'Re-enabling motion must not animate until scrolling.');
+    assert.equal(frames.size, 1, 'Re-enabling motion resumes idle animation.');
     scroll(500);
     assert.equal(frames.size, 1);
     await act(async () => { root?.unmount(); root = undefined; });

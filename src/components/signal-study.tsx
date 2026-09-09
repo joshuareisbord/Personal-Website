@@ -11,49 +11,59 @@ export function SignalStudy(): ReactElement {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
     let frame = 0;
     let lastScroll = window.scrollY;
-    let current = 0;
-    let from = 0;
-    let target = 0;
-    let startedAt = 0;
+    let phase = 0;
+    let scrollVelocity = 0;
+    let previousTime: number | undefined;
+    let active = false;
     const update = (timestamp: number): void => {
       frame = 0;
-      const progress = Math.min(1, Math.max(0, (timestamp - startedAt) / 180));
-      current = from + (target - from) * (1 - (1 - progress) ** 3);
-      drawing.setAttribute('transform', `translate(865 ${240 + current * 8}) rotate(${-24 + current * 3})`);
-      if (progress < 1) frame = window.requestAnimationFrame(update);
+      if (!active) return;
+      if (previousTime !== undefined) {
+        const seconds = Math.min(0.05, Math.max(0, (timestamp - previousTime) / 1000));
+        const decay = Math.exp(-seconds / 0.22);
+        phase = (phase + 0.35 * seconds + scrollVelocity * 0.22 * (1 - decay)) % 360;
+        scrollVelocity *= decay;
+        drawing.setAttribute('transform', `translate(865 ${240 + Math.sin(phase * Math.PI / 180) * 6}) rotate(${-24 + phase})`);
+      }
+      previousTime = timestamp;
+      frame = window.requestAnimationFrame(update);
+    };
+    const synchronize = (): void => {
+      const bounds = region.getBoundingClientRect();
+      active = !reducedMotion.matches && !document.hidden && bounds.bottom > 0 && bounds.top < window.innerHeight;
+      if (active) {
+        if (!frame) frame = window.requestAnimationFrame(update);
+      } else {
+        window.cancelAnimationFrame(frame);
+        frame = 0;
+        previousTime = undefined;
+        scrollVelocity = 0;
+      }
     };
     const scroll = (): void => {
       const delta = window.scrollY - lastScroll;
       lastScroll = window.scrollY;
-      if (reducedMotion.matches || delta === 0) return;
-      const bounds = region.getBoundingClientRect();
-      if (bounds.bottom < 0 || bounds.top > window.innerHeight) return;
-      const next = Math.max(-1, Math.min(1, target + delta / Math.max(1, window.innerHeight + bounds.height)));
-      if (next === target) return;
-      from = current;
-      target = next;
-      startedAt = window.performance.now();
-      if (!frame) frame = window.requestAnimationFrame(update);
+      const wasActive = active;
+      synchronize();
+      if (!active || !wasActive || delta === 0) return;
+      if (Math.sign(delta) !== Math.sign(scrollVelocity)) scrollVelocity = 0;
+      scrollVelocity = Math.max(-12, Math.min(12, scrollVelocity + delta * 0.12));
     };
     const resize = (): void => {
       lastScroll = window.scrollY;
-      window.cancelAnimationFrame(frame);
-      frame = 0;
-      target = current;
-    };
-    const preferenceChanged = (): void => {
-      resize();
-      current = from = target = 0;
-      drawing.setAttribute('transform', 'translate(865 240) rotate(-24)');
+      synchronize();
     };
     window.addEventListener('scroll', scroll, { passive: true });
     window.addEventListener('resize', resize, { passive: true });
-    reducedMotion.addEventListener('change', preferenceChanged);
+    document.addEventListener('visibilitychange', resize);
+    reducedMotion.addEventListener('change', resize);
+    synchronize();
     return () => {
       window.cancelAnimationFrame(frame);
       window.removeEventListener('scroll', scroll);
       window.removeEventListener('resize', resize);
-      reducedMotion.removeEventListener('change', preferenceChanged);
+      document.removeEventListener('visibilitychange', resize);
+      reducedMotion.removeEventListener('change', resize);
     };
   }, []);
   return <div ref={container} aria-hidden="true" className="relative isolate h-64 overflow-hidden bg-night sm:h-80 lg:h-[25rem]">
