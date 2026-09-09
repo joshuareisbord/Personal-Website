@@ -124,6 +124,8 @@ The location picker loads countries, regions, and searchable cities from this si
 
 The interactive D3 globe uses Natural Earth country and state/province outlines. Drag horizontally on touch, drag in any direction with a mouse, or use the labeled rotation/zoom controls. The role selector includes co-located jobs. Connections follow job start dates from earliest to latest, independently of the authored list order. Unknown locations break a route; ambiguous dates, co-located stops, and antipodal routes do not create misleading travel lines. Auto-rotation and route flow pause offscreen, in background tabs, during interaction, and for reduced-motion preferences. Boundaries load near the viewport, and lookup data loads only in the editor, one country at a time. Sources, licenses, and regeneration instructions are in [Geography data](docs/geography.md).
 
+Continue zooming in to explore a Leaflet street map in the same panel, or choose **Street level** to jump to a mapped role's city. The monochrome map supports zoom through level 19 with street names, work markers, and chronological connections. Zoom out to world scale or choose **Back to globe** to return. Leaflet and external OpenStreetMap tiles load only when requested; no API key is needed. City markers do not identify exact office addresses. See [street map behavior and tile usage](docs/geography.md#street-level-exploration).
+
 The service stores one document at `website/content`:
 
 | Field | Stored value |

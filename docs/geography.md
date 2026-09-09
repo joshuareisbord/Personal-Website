@@ -1,6 +1,14 @@
-# Offline geography assets
+# Geography and street maps
 
-The public globe uses local TopoJSON. The editor loads a small country index and then only the selected country's location file. There is no geocoding service, API key, CDN dependency, or runtime import of `country-state-city`. The committed outputs work without external network access; a browser must still obtain the files from the site's own origin. This does not add a service worker or promise disconnected browsing before assets have been downloaded.
+The wireframe globe uses local TopoJSON. The editor loads a small country index and then only the selected country's location file. These views require no geocoding service, API key, CDN dependency, or runtime import of `country-state-city`. The committed geography works without external network access; a browser must still obtain the files from the site's own origin. This does not add a service worker or promise disconnected browsing before assets have been downloaded.
+
+## Street-level exploration
+
+Keep pressing **Zoom in** beyond the globe's regional view to open a detailed map in the same panel. **Street level** jumps directly to the selected role's city. The detailed view uses npm-managed Leaflet and OpenStreetMap raster tiles, with monochrome styling, visible attribution, and zoom up to level 19. Use the zoom controls, keyboard +/−, double-click, or pinch; ordinary mouse-wheel scrolling continues scrolling the webpage. **Back to globe**, or zooming out to world scale, returns to the wireframe view at the current map center.
+
+The mapping library and street tiles load only after explicit interaction. Street tiles require internet access and use [OpenStreetMap's standard tile service](https://operations.osmfoundation.org/policies/tiles/), whose availability is best-effort. Browser requests use HTTPS and normal Referer/cache behavior. There is no tile proxy, background prefetch, bulk download, or offline archive. Attribution remains outside the map as well as in its controls. Automated zoom tests intercept tiles with local fixtures rather than requesting many zoom levels from the community service.
+
+Work markers still represent the saved city coordinates, not verified office addresses. Connections show the chronology of roles along great-circle paths; they are not street directions. Co-located roles stay individually selectable, and unknown locations are never inferred. The wireframe globe and role details remain usable if the street library or tile service is unavailable. No Firebase database, authorization, or location schema change is required.
 
 ## Asset contract
 
@@ -109,7 +117,7 @@ If the shell is not already using the project's Node 26.8.1 runtime, run the sam
 rtk proxy npm exec --yes --package=node@26.8.1 -- npm exec -- tsx scripts/prepare-geography.ts
 ```
 
-On a cold cache, this downloads the two **immutable, checksum-verified** Natural Earth files. They are cached outside the public output in `path.join(os.tmpdir(), 'personal-website-geography')`. Set `GEOGRAPHY_SOURCE_DIR` to an existing directory containing the two named GeoJSON source files to use a persistent or transferred source cache. Only source preparation needs external network access.
+On a cold cache, this downloads the two **immutable, checksum-verified** Natural Earth files. They are cached outside the public output in `path.join(os.tmpdir(), 'personal-website-geography')`. Set `GEOGRAPHY_SOURCE_DIR` to an existing directory containing the two named GeoJSON source files to use a persistent or transferred source cache. For these committed assets, only source preparation needs external network access; the separate street map uses live tiles as described above.
 
 ```sh
 # Byte-for-byte comparison against committed outputs, using the cached source.
