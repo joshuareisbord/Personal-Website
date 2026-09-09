@@ -8,7 +8,7 @@ import { validateStaticCss, validateStaticHtml } from './output-validation.ts';
 const root = resolve('.');
 const output = await realpath(join(root, 'dist'));
 const snapshot = parseProfile(JSON.parse(await readFile(join(root, 'src/data/profile.json'), 'utf8')));
-const home = await readFile(join(output, 'home.html'), 'utf8');
+const home = await readFile(join(output, 'index.html'), 'utf8');
 const escapeHtml = (text: string): string => text.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#x27;');
 assert.match(home, /<h1\b/);
 assert.match(home, /id="experience"/);

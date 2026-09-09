@@ -1,6 +1,6 @@
 {
-  "name": "Personal website (Node 24)",
-  "image": "mcr.microsoft.com/devcontainers/javascript-node:5-24-bookworm",
+  "name": "Personal website (Node 26)",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:26-bookworm",
   "features": {
     "ghcr.io/devcontainers/features/java:1": {
       "version": "21"

@@ -53,8 +53,9 @@ export function Home({ content: { profile, site }, year, ownerControls }: Props)
         <h2 id="contact-heading" className="text-[clamp(4rem,9vw,8rem)] leading-[0.9] font-semibold tracking-[-0.05em]">{site.contactTitle}<span aria-hidden="true">.</span></h2>
         <div className="flex flex-col items-start lg:pt-2">
           <p className="mb-8 max-w-md text-2xl leading-snug text-night-muted">{site.contactIntro}</p>
-          <a className="flex min-h-12 max-w-full items-center gap-4 border-b border-night-rule pb-2 text-[clamp(1.05rem,2.1vw,1.8rem)] hover:text-white" href={`mailto:${site.email}`}><span className="break-all">{site.email}</span><span aria-hidden="true">↗</span></a>
-          <a className="mt-5 flex min-h-11 items-center font-mono text-sm text-night-muted hover:text-white" href={site.phoneHref}>{site.phone}</a>
+          {site.email && <a className="flex min-h-12 max-w-full items-center gap-4 border-b border-night-rule pb-2 text-[clamp(1.05rem,2.1vw,1.8rem)] hover:text-white" href={`mailto:${site.email}`}><span className="break-all">{site.email}</span><span aria-hidden="true">↗</span></a>}
+          {site.phone && site.phoneHref && <a className="mt-5 flex min-h-11 items-center font-mono text-sm text-night-muted hover:text-white" href={site.phoneHref}>{site.phone}</a>}
+          {!site.email && !site.phone && <a href="#social-links" className="inline-flex min-h-12 items-center gap-6 border-b border-night-rule font-mono text-sm hover:text-white">Find me online <span aria-hidden="true">↓</span></a>}
         </div>
       </div>
     </section>

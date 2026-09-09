@@ -1,18 +1,20 @@
 # Personal website
 
-React, Vite, and TypeScript website at [joshuareisbord.com/home](https://joshuareisbord.com/home), hosted on Firebase project `personal-website-f17c6`. Approved owners sign in with Google and edit public content through a Firestore-backed CMS. Pages are prerendered for the initial response and hydrated in the browser; no custom application server is deployed.
+React, Vite, and TypeScript website at [joshuareisbord.com/](https://joshuareisbord.com/), hosted on Firebase project `personal-website-f17c6`. Approved owners sign in with Google and edit public content through a Firestore-backed CMS. Pages are prerendered for the initial response and hydrated in the browser; no custom application server is deployed.
 
-**Live CMS setup is pending.** No live Firebase configuration, first-owner creation, or rules deployment has been performed by this implementation. A successful local build does not establish production authorization.
+**Live CMS configured on September 9, 2026.** Google sign-in is enabled, `joshuareisbord.com` is authorized, the tested Firestore rules are deployed, and `joshuareisbord@gmail.com` is enabled as the first owner. Hosting builds use the verified public Firebase configuration from GitHub Actions variables. The first owner sign-in and content save on the live site remain to be verified by the owner; no production content has been seeded automatically.
 
 ## Design
 
-The visual references are [Anduril](https://www.anduril.com/) and [Inversion](https://www.inversionspace.com/). The site uses a light paper background, black display typography, fine rules, and an original technical vector graphic. The graphic gently rotates and shifts as it scrolls through the viewport, stays still when scrolling stops, and respects reduced-motion preferences. Barlow and IBM Plex Mono are bundled locally. About and work experience remain the focus; one optional profile photo appears in About, and GitHub/LinkedIn links appear only in the footer. Project cards and project CTAs are removed.
+The visual references are [Anduril](https://www.anduril.com/) and [Inversion](https://www.inversionspace.com/). The site uses a light paper background, black display typography, fine rules, and an original technical vector graphic. The graphic starts smoothly from its server-rendered pose and rotates slowly at rest. Scrolling down accelerates it forward; scrolling up reverses it, with momentum easing back to the idle speed. Motion pauses offscreen, in hidden tabs, and for reduced-motion preferences without resetting its position. Barlow and IBM Plex Mono are bundled locally. About and work experience remain the focus; one optional profile photo appears in About, and GitHub/LinkedIn links appear only in the footer. Project cards and project CTAs are removed.
 
 Updated career wording and a profile photo still await owner input. The repository seed currently has `photo: null` and an empty experience list; it does not invent a portrait or new work history. These can be supplied through the owner CMS, with the seed/SEO update distinction described below.
 
+Footer social links use the GitHub and LinkedIn SVG paths imported from Material Design Icons (`@mdi/js`), with accessible link names and large touch targets. The unused PNG logos have been removed. Only the two imported icons are bundled; no icon font or external icon request is needed.
+
 ## Local development
 
-Use Node 24, npm, and Java 21 for Firestore emulator tests. The development container includes Node and Java and forwards Vite development (5173), Vite preview (4173), Hosting (5002), Auth (9099), and Firestore (8080).
+Use Node 26.8.1 or a newer Node 26 release, npm, and Java 21 for Firestore emulator tests. The development container includes Node and Java and forwards Vite development (5173), Vite preview (4173), Hosting (5002), Auth (9099), and Firestore (8080). GitHub Actions reads the runtime from `.nvmrc`.
 
 On macOS with Homebrew's `openjdk@21` installed, select it for the current shell without a global Java symlink:
 
@@ -28,7 +30,7 @@ npm ci
 npm run dev
 ```
 
-Open [localhost:5173/home](http://localhost:5173/home). Without Firebase configuration the site shows its committed seed and disables editing.
+Open [localhost:5173/](http://localhost:5173/). Without Firebase configuration the site shows its committed seed and disables editing.
 
 | Command | Purpose |
 | --- | --- |
@@ -43,7 +45,7 @@ Open [localhost:5173/home](http://localhost:5173/home). Without Firebase configu
 | `npm run cms:seed` | Enable the first owner in the local demo Firestore only |
 | `npm run deploy:rules` | Separate, manual Firestore rules deployment after the review below |
 
-`npm run build` uses `src/entry-server.tsx` and the ignored `.prerender/` directory only during the build. Hosting serves `dist/home.html`, `dist/index.html`, `dist/404.html`, and public assets. Build before running either preview command. Vite preview does not implement Firebase redirects; use [localhost:5002/home](http://localhost:5002/home) to check Hosting. Port 5002 avoids macOS AirPlay's port 5000 conflict.
+`npm run build` uses `src/entry-server.tsx` and the ignored `.prerender/` directory only during the build. Hosting serves `dist/index.html`, `dist/404.html`, and public assets. Build before running either preview command. Vite preview does not implement Firebase redirects; use [localhost:5002/](http://localhost:5002/) to check Hosting. Port 5002 avoids macOS AirPlay's port 5000 conflict.
 
 Copy `.env.example` to ignored `.env.local` and set the four Firebase web-app values for the project you intend to use:
 
@@ -92,9 +94,13 @@ Enabling the emulator switch away from localhost/loopback is rejected: CMS initi
 
 Owners can add or remove other approved email addresses in the CMS. Addresses are normalized to lowercase and stored as `websiteOwners/{lowercaseemail}` with `{ enabled: true }`. Owners cannot remove themselves. Signing in with an unapproved Google account does not grant editing access; project administrators can repair the allowlist through the console if necessary.
 
+The September 9 production inventory found only the legacy `projects` collection. Its public reads and writes by the two previously authorized UIDs are preserved under `/projects/{document=**}`; these legacy permissions do not grant access to the CMS or owner allowlist. Storage rules and existing data were left unchanged. The pre-migration Firestore and Storage rulesets, release references, and authorized domains were backed up outside the repository under `~/Documents/Firebase Backups/personal-website-f17c6/2026-09-09/`. These are configuration backups, not a database export. Retire legacy access only after its consumers and data have been reviewed separately.
+
 ## Publishing and stored content
 
 Editing is a local draft until **Save** succeeds. Save publishes browser-visible content through Firestore without a Git commit or Hosting deployment. If authorization, connectivity, validation, or a conflicting revision prevents a save, resolve the reported failure before treating the draft as published.
+
+The owner editor uses the website's paper background, black typography, and ruled sections to group profile, work experience, and contact settings. Email and phone are independently optional: leave either blank to hide that link, or leave both blank to show a link to the footer's social icons. Enter the phone number as you want it displayed; the editor builds its call link automatically. Existing publications retain their contact information until an owner explicitly edits and saves it. Missing optional contact fields normalize to empty strings, while malformed addresses and incomplete phone/link pairs are rejected.
 
 The service stores one document at `website/content`:
 
@@ -117,8 +123,10 @@ The **Firebase production** workflow runs on pushes to `main` and manual **Run w
 
 Production is blocked before the build if any of the four `VITE_FIREBASE_*` repository variables is missing or blank, or if `VITE_FIREBASE_PROJECT_ID` is not exactly `personal-website-f17c6`. Correct the repository variables and rerun the workflow. PR previews and local builds still support missing configuration with editing disabled.
 
-Hosting preserves `/` → `/home` (301), clean URLs without trailing slashes, and a genuine 404. Before cutover, exercise owner sign-in, approved-email management, failed/successful saves, signed-out reads, and navigation with emulators and then the authorized target project.
+Hosting serves the website directly at `/`. Legacy `/home`, `/home/`, and `/home.html` URLs redirect to `/` (301); clean URLs and a genuine 404 remain enabled. Before cutover, exercise owner sign-in, approved-email management, failed/successful saves, signed-out reads, and navigation with emulators and then the authorized target project.
 
 For a Hosting regression, pause production runs, restore the previous release in Firebase Hosting history, and review/revert the source before resuming deployments. **Hosting rollback does not roll back Firestore content or the allowlist.** Restore content from a reviewed backup through an approved owner save, or use administrator recovery for database/allowlist problems. A revision number is not a content-history archive; keep backups before significant edits or rules changes.
 
-No existing cloud resources are deleted automatically. Keep ownership checks and verified backups for any later retirement. Dependency versions live in `package.json` and the lockfile; retain Node 24 typings and review fresh production/full audits when updating the toolchain.
+No existing cloud resources are deleted automatically. Keep ownership checks and verified backups for any later retirement. Dependency versions live in `package.json` and the lockfile; keep Node typings aligned with the runtime and review fresh production/full audits when updating the toolchain.
+
+Firebase CLI 15.29.0 still requests Superstatic 10, whose supported Node versions stop at 24. The scoped npm override selects Superstatic 11.0.0 for its Node 26 support. Recheck and remove this override when Firebase CLI updates its dependency; Hosting emulator redirects, static assets, and 404 handling are verified with it.
