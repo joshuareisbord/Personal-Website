@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { photoCropSchema } from './photo-crop';
+
 const requiredText = z.string().min(1).max(500).refine((value) => value.trim().length > 0);
 const date = z.string().regex(/^[1-9]\d{3}(?:-(?:0[1-9]|1[0-2]))?$/);
 const officeSchema = z.object({
@@ -48,6 +50,7 @@ const profileSchema = z.object({
       try { const url = new URL(value); return url.protocol === 'https:' && !url.username && !url.password; } catch { return false; }
     })()),
     alt: requiredText,
+    crop: photoCropSchema.optional(),
   }).strict().nullable(),
   experience: z.array(experienceSchema).max(100),
 }).strict();

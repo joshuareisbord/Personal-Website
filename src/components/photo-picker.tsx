@@ -2,12 +2,18 @@ import { useCallback, useEffect, useId, useRef, useState, type ReactElement } fr
 
 import { photoSource } from '../lib/photo-source';
 import { PHOTO_ACCEPT, preparePhoto } from '../lib/photo-upload';
+import type { PhotoCrop } from '../lib/photo-crop';
 import { buttonClass, controlClass } from './editor-styles';
+import { PhotoCropper } from './photo-cropper';
+import { ProfilePhoto } from './profile-photo';
 
 export interface PhotoPickerProps {
   path: string;
   file: Blob | null;
   alt: string;
+  crop?: PhotoCrop | undefined;
+  onCropChange?: (crop: PhotoCrop | undefined) => void;
+  onCroppingChange?: (cropping: boolean) => void;
   onPathChange: (value: string) => void;
   onFileChange: (file: Blob | null) => void;
   onPreparingChange?: (preparing: boolean) => void;
@@ -23,7 +29,7 @@ function previewPath(path: string): string {
 }
 
 /** Keep a prepared upload separate from its published path; the parent clears file after saving. */
-export function PhotoPicker({ path, file, alt, onPathChange, onFileChange, onPreparingChange }: PhotoPickerProps): ReactElement {
+export function PhotoPicker({ path, file, alt, crop, onCropChange, onCroppingChange, onPathChange, onFileChange, onPreparingChange }: PhotoPickerProps): ReactElement {
   const id = useId();
   const input = useRef<HTMLInputElement>(null);
   const request = useRef(0);
@@ -33,6 +39,11 @@ export function PhotoPicker({ path, file, alt, onPathChange, onFileChange, onPre
   const [error, setError] = useState('');
   const [preview, setPreview] = useState<{ file: Blob; url: string } | null>(null);
   const [failedPreview, setFailedPreview] = useState<string | null>(null);
+  const [cropping, setCropping] = useState(false);
+  const cropButton = useRef<HTMLButtonElement>(null);
+  const croppingCallback = useRef(onCroppingChange);
+  useEffect(() => { croppingCallback.current = onCroppingChange; }, [onCroppingChange]);
+  const closeCrop = (): void => { setCropping(false); croppingCallback.current?.(false); cropButton.current?.focus(); };
 
   useEffect(() => { preparingCallback.current = onPreparingChange; }, [onPreparingChange]);
   const reportPreparing = useCallback((value: boolean): void => {
@@ -46,8 +57,10 @@ export function PhotoPicker({ path, file, alt, onPathChange, onFileChange, onPre
     setPreparing(false);
     reportPreparing(false);
     setError('');
+    setCropping(false);
+    croppingCallback.current?.(false);
     if (input.current) { input.current.value = ''; input.current.setCustomValidity(''); }
-    return () => { request.current += 1; reportPreparing(false); };
+    return () => { request.current += 1; reportPreparing(false); croppingCallback.current?.(false); };
   }, [path, file, reportPreparing]);
 
   useEffect(() => {
@@ -58,6 +71,7 @@ export function PhotoPicker({ path, file, alt, onPathChange, onFileChange, onPre
   }, [file]);
 
   const cancel = (): void => {
+    closeCrop();
     request.current += 1;
     setPreparing(false);
     reportPreparing(false);
@@ -66,6 +80,7 @@ export function PhotoPicker({ path, file, alt, onPathChange, onFileChange, onPre
     if (input.current) { input.current.value = ''; input.current.setCustomValidity(''); }
   };
   const select = async (selected: File): Promise<void> => {
+    closeCrop();
     const current = ++request.current;
     setPreparing(true);
     reportPreparing(true);
@@ -111,10 +126,14 @@ export function PhotoPicker({ path, file, alt, onPathChange, onFileChange, onPre
       {preparing ? 'Preparing photo…' : file ? 'Photo ready. Save and publish to upload it.' : 'Photo changes appear on your website after saving.'}
     </p>
     {error && <p id={`${id}-error`} role="alert" className="text-sm leading-relaxed text-ink">{error}</p>}
-    {source && source !== failedPreview && <img key={source} src={source} alt={alt || 'Selected photo preview'}
-      className="max-h-64 w-full border border-rule object-contain" onError={() => setFailedPreview(source)} />}
+    {source && source !== failedPreview && !cropping && <ProfilePhoto key={source} src={source} alt={alt || 'Selected photo preview'} crop={crop}
+      className="w-full max-w-xs border border-rule grayscale" onError={() => setFailedPreview(source)} />}
+    {source && cropping && onCropChange && <PhotoCropper key={source} source={source} initialCrop={crop}
+      onApply={(value) => { onCropChange(value); closeCrop(); }} onCancel={closeCrop} />}
     {source && source === failedPreview && <p role="status" className="text-sm text-ink">Photo preview could not load. Check the image link or choose another photo.</p>}
     <div className="flex flex-wrap gap-3">
+      {source && source !== failedPreview && onCropChange && <button ref={cropButton} type="button" className={buttonClass} disabled={preparing || cropping} onClick={() => { setCropping(true); croppingCallback.current?.(true); }}>Crop photo</button>}
+      {crop && onCropChange && !cropping && <button type="button" className={buttonClass} onClick={() => onCropChange(undefined)}>Reset crop</button>}
       {(file || preparing) && <button type="button" className={buttonClass} onClick={() => { cancel(); onFileChange(null); }}>Revert upload</button>}
       {(path || file || preparing) && <button type="button" className={buttonClass} onClick={() => { cancel(); onFileChange(null); onPathChange(''); }}>Remove photo</button>}
     </div>
