@@ -31,6 +31,7 @@
     "leaflet": "^1.9.4",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-easy-crop": "^6.2.3",
     "topojson-client": "^3.1.0",
     "zod": "^4.5.4"
   },

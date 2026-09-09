@@ -3,6 +3,7 @@ import type { ReactElement, ReactNode } from 'react';
 import { mdiGithub, mdiLinkedin } from '@mdi/js';
 
 import { Experience } from '../components/experience';
+import { ProfilePhoto } from '../components/profile-photo';
 import { SignalStudy } from '../components/signal-study';
 import { Layout } from '../layouts/main';
 import type { SiteContent } from '../lib/content';
@@ -40,8 +41,8 @@ export function Home({ content: { profile, site }, year, ownerControls }: Props)
       <section id="about" aria-labelledby="about-heading" className="scroll-mt-8 grid gap-10 border-b border-rule py-20 sm:py-28 lg:grid-cols-[1fr_2fr] lg:gap-20">
         <div>
           <h2 id="about-heading" className="max-w-sm text-5xl leading-none font-semibold tracking-[-0.045em] sm:text-6xl">{site.aboutTitle}</h2>
-          {profile.photo && <figure className="mt-10 w-44 sm:w-52 lg:mt-16">
-            <img src={photoSource(profile.photo.path)} alt={profile.photo.alt} width="416" height="520" className="aspect-[4/5] w-full object-cover grayscale" loading="lazy" />
+          {profile.photo && <figure className="mt-10 w-full max-w-md lg:mt-16 lg:max-w-none">
+            <ProfilePhoto src={photoSource(profile.photo.path)} alt={profile.photo.alt} crop={profile.photo.crop} className="grayscale" loading="lazy" />
             <figcaption className="mt-3 font-mono text-xs text-muted">{profile.name}</figcaption>
           </figure>}
         </div>

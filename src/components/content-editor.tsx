@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState, type ReactElement } from 'react';
 
 import { parseContent, type SiteContent, type SiteCopy } from '../lib/content';
 import type { Profile, WorkPlace } from '../lib/profile';
+import type { PhotoCrop } from '../lib/photo-crop';
 import { buttonClass, controlClass } from './editor-styles';
 import { LocationPicker } from './location-picker';
 import { MonthPicker } from './month-picker';
@@ -46,6 +47,8 @@ export function ContentEditor({ initial, onSave, onDirty }: Props): ReactElement
   const [photoPath, setPhotoPath] = useState(initial.profile.photo?.path ?? '');
   const [photoAlt, setPhotoAlt] = useState(initial.profile.photo?.alt ?? '');
   const [photoFile, setPhotoFile] = useState<Blob | null>(null);
+  const [photoCrop, setPhotoCrop] = useState<PhotoCrop | undefined>(initial.profile.photo?.crop);
+  const [croppingPhoto, setCroppingPhoto] = useState(false);
   const [preparingPhoto, setPreparingPhoto] = useState(false);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -85,7 +88,7 @@ export function ContentEditor({ initial, onSave, onDirty }: Props): ReactElement
     change({ ...draft, profile: { ...draft.profile, experience } });
   };
   const save = async (): Promise<void> => {
-    if (preparingPhoto || saving) return;
+    if (preparingPhoto || croppingPhoto || saving) return;
     setSaving(true); setStatus(''); setFailed(false);
     try {
       if (draft.site.phone.trim() && !draft.site.phoneHref) {
@@ -94,13 +97,13 @@ export function ContentEditor({ initial, onSave, onDirty }: Props): ReactElement
       let content: SiteContent;
       try {
         content = parseContent({ ...draft,
-          profile: { ...draft.profile, photo: photoFile || photoPath.trim() ? { path: photoFile ? '/profile/pending.jpg' : photoPath.trim(), alt: photoAlt.trim() } : null },
+          profile: { ...draft.profile, photo: photoFile || photoPath.trim() ? { path: photoFile ? '/profile/pending.jpg' : photoPath.trim(), alt: photoAlt.trim(), ...(photoCrop ? { crop: photoCrop } : {}) } : null },
           site: { ...draft.site, about: bio.split(/\n\s*\n/).map((text) => text.trim()).filter(Boolean) },
         });
       } catch { throw new Error('Check required text, photo description, links, contact details, and work dates. An end date must follow its start date.'); }
       const published = await onSave(content, photoFile ?? undefined) ?? content;
       if (!mounted.current) return;
-      setDraft(published); setPhotoPath(published.profile.photo?.path ?? ''); setPhotoFile(null);
+      setDraft(published); setPhotoPath(published.profile.photo?.path ?? ''); setPhotoFile(null); setPhotoCrop(published.profile.photo?.crop);
       setDirty(false); onDirty(false); setStatus('Published. Your website is updated.');
     } catch (error) {
       if (mounted.current) { setFailed(true); setStatus(error instanceof Error ? error.message : 'Could not publish. Your draft is still here.'); }
@@ -119,9 +122,10 @@ export function ContentEditor({ initial, onSave, onDirty }: Props): ReactElement
           <EditorField label="Headline" value={draft.site.tagline} multiline onChange={(value) => copy('tagline', value)} hint="A short introduction beneath your name." />
           <EditorField label="About heading" value={draft.site.aboutTitle} onChange={(value) => copy('aboutTitle', value)} />
           <EditorField label="Bio" value={bio} multiline onChange={(value) => { setBio(value); change(draft); }} hint="Separate paragraphs with a blank line." />
-          <PhotoPicker path={photoPath} file={photoFile} alt={photoAlt}
-            onPathChange={(value) => { setPhotoPath(value); change(draft); }}
-            onFileChange={(value) => { setPhotoFile(value); change(draft); }} onPreparingChange={setPreparingPhoto} />
+          <PhotoPicker path={photoPath} file={photoFile} alt={photoAlt} crop={photoCrop}
+            onCropChange={(value) => { setPhotoCrop(value); change(draft); }} onCroppingChange={setCroppingPhoto}
+            onPathChange={(value) => { setPhotoPath(value); setPhotoCrop(undefined); change(draft); }}
+            onFileChange={(value) => { setPhotoFile(value); setPhotoCrop(value ? undefined : photoPath === draft.profile.photo?.path ? draft.profile.photo?.crop : undefined); change(draft); }} onPreparingChange={setPreparingPhoto} />
           <EditorField label="Photo description" value={photoAlt} required={Boolean(photoFile || photoPath.trim())} onChange={(value) => { setPhotoAlt(value); change(draft); }} hint="Describe the photo for someone using a screen reader." />
         </div>
       </section>
@@ -177,7 +181,7 @@ export function ContentEditor({ initial, onSave, onDirty }: Props): ReactElement
           <p className="font-mono text-xs text-ink" role="status">{saving ? 'Publishing…' : dirty ? 'Unsaved changes' : status && !failed ? 'Changes published' : 'No unpublished changes'}</p>
           <p className="mt-1 text-sm text-muted">{saving ? 'Keep this editor open while your changes are saved.' : 'Save to make this content visible on your website.'}</p>
         </div>
-        <button type="submit" className="min-h-12 w-full border border-ink bg-ink px-6 py-3 font-mono text-xs text-paper hover:bg-night disabled:cursor-wait disabled:opacity-50 sm:w-auto" disabled={saving || preparingPhoto}>{saving ? photoFile ? 'Uploading and publishing…' : 'Publishing…' : preparingPhoto ? 'Preparing photo…' : 'Save and publish'}</button>
+        <button type="submit" className="min-h-12 w-full border border-ink bg-ink px-6 py-3 font-mono text-xs text-paper hover:bg-night disabled:cursor-wait disabled:opacity-50 sm:w-auto" disabled={saving || preparingPhoto || croppingPhoto}>{saving ? photoFile ? 'Uploading and publishing…' : 'Publishing…' : preparingPhoto ? 'Preparing photo…' : croppingPhoto ? 'Finish cropping first' : 'Save and publish'}</button>
       </div>
     </fieldset>
     {status && <p ref={feedback} role={failed ? 'alert' : 'status'} className="mt-4 scroll-mt-40 border border-rule p-4 text-base leading-relaxed text-ink">{status}</p>}
