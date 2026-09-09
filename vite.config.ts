@@ -13,7 +13,6 @@ export default defineConfig(({ isSsrBuild }) => ({
     rolldownOptions: isSsrBuild ? {} : {
       input: {
         index: fileURLToPath(new URL('./index.html', import.meta.url)),
-        home: fileURLToPath(new URL('./home.html', import.meta.url)),
         '404': fileURLToPath(new URL('./404.html', import.meta.url)),
       },
     },

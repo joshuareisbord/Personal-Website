@@ -10,8 +10,18 @@
     "trailingSlash": false,
     "redirects": [
       {
-        "source": "/",
-        "destination": "/home",
+        "source": "/home",
+        "destination": "/",
+        "type": 301
+      },
+      {
+        "source": "/home/",
+        "destination": "/",
+        "type": 301
+      },
+      {
+        "source": "/home.html",
+        "destination": "/",
         "type": 301
       }
     ]

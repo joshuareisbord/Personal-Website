@@ -47,7 +47,7 @@ test('React/Vite builds prerender populated profile HTML and local hydration ass
       cp(join(project, 'src'), join(root, 'src'), { recursive: true }),
       cp(join(project, 'public'), join(root, 'public'), { recursive: true }),
       cp(join(project, 'scripts'), join(root, 'scripts'), { recursive: true }),
-      ...['vite.config.ts', 'tsconfig.json', 'package.json', 'home.html', '404.html', 'index.html'].map((file) => cp(join(project, file), join(root, file))),
+      ...['vite.config.ts', 'tsconfig.json', 'package.json', '404.html', 'index.html'].map((file) => cp(join(project, file), join(root, file))),
       symlink(join(project, 'node_modules'), join(root, 'node_modules'), 'junction'),
     ]);
     await mkdir(join(root, 'public/profile'), { recursive: true });
@@ -68,8 +68,8 @@ test('React/Vite builds prerender populated profile HTML and local hydration ass
     await exec(process.execPath, ['--import', 'tsx', 'scripts/prerender.ts'], options);
     const verify = (): Promise<unknown> => exec(process.execPath, ['--import', 'tsx', 'scripts/verify-output.ts'], options);
     await verify();
-    const html = await readFile(join(root, 'dist/home.html'), 'utf8');
-    const document = new JSDOM(html, { url: 'https://fixture.invalid/home' }).window.document;
+    const html = await readFile(join(root, 'dist/index.html'), 'utf8');
+    const document = new JSDOM(html, { url: 'https://fixture.invalid/' }).window.document;
     assert.equal(document.querySelectorAll('h1').length, 1);
     assert.equal(document.querySelector('h1')?.textContent?.replace(/\s+/g, ' ').trim(), "Fixture O'Neil");
     const images = document.querySelectorAll('img');
@@ -103,9 +103,12 @@ test('React/Vite builds prerender populated profile HTML and local hydration ass
     assert.ok((await readFile(join(root, 'dist/profile/fixture.webp'))).length > 0);
     const notFound = await readFile(join(root, 'dist/404.html'), 'utf8');
     assert.match(notFound, /Page not found/i);
-    assert.match(notFound, /href="\/home"/);
+    assert.match(notFound, /href="\/"/);
     assert.ok(validateStaticHtml(notFound).some((reference) => reference.endsWith('.js')));
-    assert.match(await readFile(join(root, 'dist/index.html'), 'utf8'), /url=\/home/);
+    assert.equal(document.querySelector('link[rel="canonical"]')?.getAttribute('href'), 'https://joshuareisbord.com/');
+    assert.equal(document.querySelector('meta[http-equiv="refresh"]'), null);
+    assert.equal((await readdir(join(root, 'dist'))).includes('home.html'), false);
+    assert.ok(links.every((link) => !link.getAttribute('href')?.startsWith('/home')), 'Internal links must use the root route.');
     assert.equal((await readdir(join(root, 'dist'))).includes('.prerender'), false);
     const clientFiles = (await readdir(join(root, 'dist/assets'))).filter((name) => name.endsWith('.js'));
     const client = (await Promise.all(clientFiles.map((name) => readFile(join(root, 'dist/assets', name), 'utf8')))).join('\n');
@@ -126,9 +129,9 @@ test('React/Vite builds prerender populated profile HTML and local hydration ass
     await assert.rejects(verify(), 'Missing referenced fonts must fail output verification.');
     await writeFile(fontPath, fontBytes);
 
-    await writeFile(join(root, 'dist/home.html'), html.replace('</body>', '<img src="/assets/missing.png"></body>'));
+    await writeFile(join(root, 'dist/index.html'), html.replace('</body>', '<img src="/assets/missing.png"></body>'));
     await assert.rejects(verify(), 'Missing referenced assets must fail output verification.');
-    await writeFile(join(root, 'dist/home.html'), html);
+    await writeFile(join(root, 'dist/index.html'), html);
     await writeFile(join(root, 'dist/assets/credential-fixture.js'), `const secret = "${credential}";`);
     await assert.rejects(verify(), 'Actual credential values must fail output verification.');
     await rm(join(root, 'dist/assets/credential-fixture.js'));

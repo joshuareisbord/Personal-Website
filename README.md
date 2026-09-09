@@ -1,6 +1,6 @@
 # Personal website
 
-React, Vite, and TypeScript website at [joshuareisbord.com/home](https://joshuareisbord.com/home), hosted on Firebase project `personal-website-f17c6`. Approved owners sign in with Google and edit public content through a Firestore-backed CMS. Pages are prerendered for the initial response and hydrated in the browser; no custom application server is deployed.
+React, Vite, and TypeScript website at [joshuareisbord.com/](https://joshuareisbord.com/), hosted on Firebase project `personal-website-f17c6`. Approved owners sign in with Google and edit public content through a Firestore-backed CMS. Pages are prerendered for the initial response and hydrated in the browser; no custom application server is deployed.
 
 **Live CMS configured on September 9, 2026.** Google sign-in is enabled, `joshuareisbord.com` is authorized, the tested Firestore rules are deployed, and `joshuareisbord@gmail.com` is enabled as the first owner. Hosting builds use the verified public Firebase configuration from GitHub Actions variables. The first owner sign-in and content save on the live site remain to be verified by the owner; no production content has been seeded automatically.
 
@@ -30,7 +30,7 @@ npm ci
 npm run dev
 ```
 
-Open [localhost:5173/home](http://localhost:5173/home). Without Firebase configuration the site shows its committed seed and disables editing.
+Open [localhost:5173/](http://localhost:5173/). Without Firebase configuration the site shows its committed seed and disables editing.
 
 | Command | Purpose |
 | --- | --- |
@@ -45,7 +45,7 @@ Open [localhost:5173/home](http://localhost:5173/home). Without Firebase configu
 | `npm run cms:seed` | Enable the first owner in the local demo Firestore only |
 | `npm run deploy:rules` | Separate, manual Firestore rules deployment after the review below |
 
-`npm run build` uses `src/entry-server.tsx` and the ignored `.prerender/` directory only during the build. Hosting serves `dist/home.html`, `dist/index.html`, `dist/404.html`, and public assets. Build before running either preview command. Vite preview does not implement Firebase redirects; use [localhost:5002/home](http://localhost:5002/home) to check Hosting. Port 5002 avoids macOS AirPlay's port 5000 conflict.
+`npm run build` uses `src/entry-server.tsx` and the ignored `.prerender/` directory only during the build. Hosting serves `dist/index.html`, `dist/404.html`, and public assets. Build before running either preview command. Vite preview does not implement Firebase redirects; use [localhost:5002/](http://localhost:5002/) to check Hosting. Port 5002 avoids macOS AirPlay's port 5000 conflict.
 
 Copy `.env.example` to ignored `.env.local` and set the four Firebase web-app values for the project you intend to use:
 
@@ -123,7 +123,7 @@ The **Firebase production** workflow runs on pushes to `main` and manual **Run w
 
 Production is blocked before the build if any of the four `VITE_FIREBASE_*` repository variables is missing or blank, or if `VITE_FIREBASE_PROJECT_ID` is not exactly `personal-website-f17c6`. Correct the repository variables and rerun the workflow. PR previews and local builds still support missing configuration with editing disabled.
 
-Hosting preserves `/` → `/home` (301), clean URLs without trailing slashes, and a genuine 404. Before cutover, exercise owner sign-in, approved-email management, failed/successful saves, signed-out reads, and navigation with emulators and then the authorized target project.
+Hosting serves the website directly at `/`. Legacy `/home`, `/home/`, and `/home.html` URLs redirect to `/` (301); clean URLs and a genuine 404 remain enabled. Before cutover, exercise owner sign-in, approved-email management, failed/successful saves, signed-out reads, and navigation with emulators and then the authorized target project.
 
 For a Hosting regression, pause production runs, restore the previous release in Firebase Hosting history, and review/revert the source before resuming deployments. **Hosting rollback does not roll back Firestore content or the allowlist.** Restore content from a reviewed backup through an approved owner save, or use administrator recovery for database/allowlist problems. A revision number is not a content-history archive; keep backups before significant edits or rules changes.
 

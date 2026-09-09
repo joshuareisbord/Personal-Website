@@ -18,7 +18,7 @@ export function Layout({ children, year, ownerControls, socialLinks }: Props): R
               <svg viewBox="0 0 24 24" className="size-6" fill="currentColor" aria-hidden="true" focusable="false"><path d={social.icon} /></svg>
             </a>)}
           </nav>}
-          <a href="/home#home" aria-label="Back to top" className="inline-flex min-h-11 items-center gap-3 self-start hover:underline underline-offset-8 sm:self-auto">Back to top <span aria-hidden="true">↑</span></a>
+          <a href="/#home" aria-label="Back to top" className="inline-flex min-h-11 items-center gap-3 self-start hover:underline underline-offset-8 sm:self-auto">Back to top <span aria-hidden="true">↑</span></a>
         </div>
         <div className="flex justify-start sm:justify-end">{ownerControls}</div>
       </div>
