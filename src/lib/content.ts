@@ -13,12 +13,17 @@ const siteSchema = z.object({
   experienceTitle: text,
   contactTitle: text,
   contactIntro: text,
-  email: z.email().max(254),
-  phone: text,
-  phoneHref: z.string().regex(/^tel:\+?[0-9 ()-]{3,30}$/),
+  email: z.string().trim().pipe(z.union([z.literal(''), z.email().max(254)])).default(''),
+  phone: z.string().trim().max(500).default(''),
+  phoneHref: z.string().trim().pipe(z.union([
+    z.literal(''),
+    z.string().regex(/^tel:\+?[0-9 ()-]{3,30}$/).refine((value) => value.replace(/\D/g, '').length >= 3, 'Enter a valid phone number.'),
+  ])).default(''),
   github: httpsUrl,
   linkedin: httpsUrl,
-}).strict();
+}).strict().refine((site) => Boolean(site.phone) === Boolean(site.phoneHref), {
+  message: 'Provide both a phone number and its call link, or leave both blank.', path: ['phone'],
+});
 const envelopeSchema = z.object({ profile: z.unknown(), site: siteSchema }).strict();
 
 export type SiteCopy = z.infer<typeof siteSchema>;

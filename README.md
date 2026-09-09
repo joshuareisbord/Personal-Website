@@ -10,6 +10,8 @@ The visual references are [Anduril](https://www.anduril.com/) and [Inversion](ht
 
 Updated career wording and a profile photo still await owner input. The repository seed currently has `photo: null` and an empty experience list; it does not invent a portrait or new work history. These can be supplied through the owner CMS, with the seed/SEO update distinction described below.
 
+Footer social links use the GitHub and LinkedIn SVG paths imported from Material Design Icons (`@mdi/js`), with accessible link names and large touch targets. The unused PNG logos have been removed. Only the two imported icons are bundled; no icon font or external icon request is needed.
+
 ## Local development
 
 Use Node 24, npm, and Java 21 for Firestore emulator tests. The development container includes Node and Java and forwards Vite development (5173), Vite preview (4173), Hosting (5002), Auth (9099), and Firestore (8080).
@@ -97,6 +99,8 @@ The September 9 production inventory found only the legacy `projects` collection
 ## Publishing and stored content
 
 Editing is a local draft until **Save** succeeds. Save publishes browser-visible content through Firestore without a Git commit or Hosting deployment. If authorization, connectivity, validation, or a conflicting revision prevents a save, resolve the reported failure before treating the draft as published.
+
+The owner editor uses the website's paper background, black typography, and ruled sections to group profile, work experience, and contact settings. Email and phone are independently optional: leave either blank to hide that link, or leave both blank to show a link to the footer's social icons. Enter the phone number as you want it displayed; the editor builds its call link automatically. Existing publications retain their contact information until an owner explicitly edits and saves it. Missing optional contact fields normalize to empty strings, while malformed addresses and incomplete phone/link pairs are rejected.
 
 The service stores one document at `website/content`:
 

@@ -20,17 +20,22 @@ export function OwnerAccounts({ cms, currentEmail }: { cms: Cms; currentEmail: s
     catch { setStatus('Could not update accounts. Check the email and your owner access, then try again.'); }
     finally { setBusy(false); }
   };
-  return <section className="mt-10 border-t border-gray-600 pt-6" aria-labelledby="owner-accounts-title">
-    <h3 id="owner-accounts-title" className="mb-3 text-xl font-semibold">Approved Google accounts</h3>
-    <p className="mb-3 text-sm text-gray-400">Every approved account can publish content and manage other owners. You cannot remove the account you are using.</p>
-    <ul className="space-y-2">{owners.map((owner) => <li key={owner} className="flex flex-wrap items-center justify-between gap-2">
-      <span className="break-all">{owner}</span>
-      {owner === currentEmail.toLowerCase() ? <span className="text-sm text-gray-400">Current account</span> : <button type="button" className={buttonClass} disabled={busy} onClick={() => { void update(() => cms.removeOwner(owner)); }}>Remove {owner}</button>}
+  return <section className="mt-10 border-t border-ink pt-8 sm:pt-10" aria-labelledby="owner-accounts-title">
+    <h3 id="owner-accounts-title" className="text-3xl font-semibold tracking-tight">Approved Google accounts</h3>
+    <p className="mt-3 mb-6 max-w-2xl text-base leading-relaxed text-muted">These people can publish content and manage other owners. Access changes take effect immediately, separately from your content draft. You cannot remove the account you are using.</p>
+    <ul className="divide-y divide-rule border-y border-rule">{owners.map((owner) => <li key={owner} className="flex min-h-16 flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3">
+      <span className="min-w-0 break-all text-base">{owner}</span>
+      {owner === currentEmail.toLowerCase() ? <span className="inline-flex min-h-12 items-center font-mono text-xs text-muted">Current account</span> : <button type="button" aria-label={`Remove ${owner}`} className={buttonClass} disabled={busy} onClick={() => { void update(() => cms.removeOwner(owner)); }}>Remove</button>}
     </li>)}</ul>
-    <form className="mt-5 space-y-3" onSubmit={(event) => { event.preventDefault(); void update(() => cms.addOwner(email.trim().toLowerCase())); }}>
-      <EditorField label="Google account email" type="email" value={email} onChange={setEmail} />
-      <button className={buttonClass} disabled={busy} type="submit">Enable account</button>
+    <form className="mt-7" onSubmit={(event) => { event.preventDefault(); void update(() => cms.addOwner(email.trim().toLowerCase())); }}>
+      <fieldset disabled={busy} className="min-w-0">
+        <legend className="sr-only">Add an approved account</legend>
+        <div className="grid items-end gap-4 sm:grid-cols-[minmax(0,1fr)_auto]">
+          <EditorField label="Google account email" type="email" value={email} onChange={setEmail} />
+          <button className={buttonClass} disabled={busy} type="submit">Enable account</button>
+        </div>
+      </fieldset>
     </form>
-    <p className="mt-3" role="status">{status}</p>
+    <p className="mt-4 text-base leading-relaxed text-ink" role="status">{busy ? 'Updating account access…' : status}</p>
   </section>;
 }

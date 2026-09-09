@@ -12,6 +12,26 @@ test('content accepts current positions, optional fields, authored biography, an
   assert.deepEqual(parseContent(JSON.parse(serializeContent(content))), content);
 });
 
+test('contact methods may be omitted independently and normalize to empty strings', () => {
+  for (const methods of [{ email: '' }, { phone: '', phoneHref: '' }, { email: '', phone: '', phoneHref: '' }]) {
+    const content = { ...initialContent, site: { ...initialContent.site, ...methods } };
+    assert.deepEqual(parseContent(JSON.parse(serializeContent(content))), content);
+  }
+  const { email: _email, phone: _phone, phoneHref: _phoneHref, ...site } = initialContent.site;
+  const parsed = parseContent({ ...initialContent, site });
+  assert.equal(parsed.site.email, '');
+  assert.equal(parsed.site.phone, '');
+  assert.equal(parsed.site.phoneHref, '');
+  const whitespace = parseContent({ ...initialContent, site: { ...site, email: '  ', phone: '  ', phoneHref: '  ' } });
+  assert.deepEqual(whitespace.site, parsed.site);
+});
+
+test('optional contact methods still reject malformed values and incomplete phone pairs', () => {
+  for (const methods of [{ email: 'broken' }, { phone: '', phoneHref: 'tel:+13103511198' }, { phone: 'Call me', phoneHref: '' }, { phoneHref: 'tel:   ' }]) {
+    assert.throws(() => parseContent({ ...initialContent, site: { ...initialContent.site, ...methods } }));
+  }
+});
+
 test('content rejects invalid dates, unsafe links, incomplete and oversized publications', () => {
   for (const [key, value] of [['github', 'javascript:alert(1)'], ['linkedin', 'http://example.com'], ['phoneHref', 'javascript:alert(1)'], ['email', 'no-email']]) {
     assert.throws(() => parseContent({ ...initialContent, site: { ...initialContent.site, [key!]: value } }));
