@@ -7,19 +7,49 @@ import { hydrateRoot } from 'react-dom/client';
 import { renderToString } from 'react-dom/server';
 
 import { ExperienceGlobe } from '../../src/components/experience-globe';
-import { buildWorkJourney, interpolateJourneyLeg, type JourneyExperience } from '../../src/lib/work-journey';
+import {
+  buildWorkJourney,
+  interpolateJourneyLeg,
+  type JourneyExperience,
+} from '../../src/lib/work-journey';
 
-function role(company: string, startDate: string, longitude?: number, latitude = 0): JourneyExperience {
-  return { company, title: 'Engineer', startDate, endDate: null,
-    ...(longitude === undefined ? {} : { place: { longitude, latitude, countryCode: 'US' } }) };
+function role(
+  company: string,
+  startDate: string,
+  longitude?: number,
+  latitude = 0,
+): JourneyExperience {
+  return {
+    company,
+    title: 'Engineer',
+    startDate,
+    endDate: null,
+    ...(longitude === undefined ? {} : { place: { longitude, latitude, countryCode: 'US' } }),
+  };
 }
 
 test('journey sorts a copy by start date and flows from the earliest role to the latest', () => {
-  const experience = [role('Latest', '2024', 60), role('First', '2019-06', 0), role('Middle', '2021', 30)];
+  const experience = [
+    role('Latest', '2024', 60),
+    role('First', '2019-06', 0),
+    role('Middle', '2021', 30),
+  ];
   const journey = buildWorkJourney(experience);
-  assert.deepEqual(experience.map((job) => job.company), ['Latest', 'First', 'Middle']);
-  assert.deepEqual(journey.stops.map((stop) => stop.role.company), ['First', 'Middle', 'Latest']);
-  assert.deepEqual(journey.legs.map((leg) => [leg.from.role.company, leg.to.role.company]), [['First', 'Middle'], ['Middle', 'Latest']]);
+  assert.deepEqual(
+    experience.map((job) => job.company),
+    ['Latest', 'First', 'Middle'],
+  );
+  assert.deepEqual(
+    journey.stops.map((stop) => stop.role.company),
+    ['First', 'Middle', 'Latest'],
+  );
+  assert.deepEqual(
+    journey.legs.map((leg) => [leg.from.role.company, leg.to.role.company]),
+    [
+      ['First', 'Middle'],
+      ['Middle', 'Latest'],
+    ],
+  );
   const leg = journey.legs[0]!;
   assert.deepEqual(interpolateJourneyLeg(leg, 0), [0, 0]);
   assert.deepEqual(interpolateJourneyLeg(leg, 1), [30, 0]);
@@ -28,9 +58,12 @@ test('journey sorts a copy by start date and flows from the earliest role to the
 
 test('unknown or invalid coordinates break routes without guessing from location text', () => {
   const journey = buildWorkJourney([
-    role('First', '2019', 0), { ...role('Remote', '2020'), location: 'New York' },
-    role('Third', '2021', 30), role('Invalid latitude', '2022', 40, 91),
-    role('Fifth', '2023', 50), role('Invalid longitude', '2024', Infinity),
+    role('First', '2019', 0),
+    { ...role('Remote', '2020'), location: 'New York' },
+    role('Third', '2021', 30),
+    role('Invalid latitude', '2022', 40, 91),
+    role('Fifth', '2023', 50),
+    role('Invalid longitude', '2024', Infinity),
     role('Seventh', '2025', 60),
   ]);
   assert.equal(journey.legs.length, 0);
@@ -41,25 +74,60 @@ test('unknown or invalid coordinates break routes without guessing from location
 });
 
 test('co-located roles retain every selectable job and omit zero-length travel', () => {
-  const journey = buildWorkJourney([role('A', '2020', 10, 20), role('B', '2021', 10, 20), role('C', '2022', 30, 20)]);
+  const journey = buildWorkJourney([
+    role('A', '2020', 10, 20),
+    role('B', '2021', 10, 20),
+    role('C', '2022', 30, 20),
+  ]);
   assert.equal(journey.markers.length, 2);
-  assert.deepEqual(journey.markers[0]!.stops.map((stop) => stop.role.company), ['A', 'B']);
-  assert.deepEqual(journey.legs.map((leg) => [leg.from.role.company, leg.to.role.company]), [['B', 'C']]);
-  assert.equal(buildWorkJourney([role('A', '2020', 180), role('B', '2021', -180)]).markers.length, 1);
-  assert.equal(buildWorkJourney([role('A', '2020', 0, 90), role('B', '2021', 120, 90)]).markers.length, 1);
+  assert.deepEqual(
+    journey.markers[0]!.stops.map((stop) => stop.role.company),
+    ['A', 'B'],
+  );
+  assert.deepEqual(
+    journey.legs.map((leg) => [leg.from.role.company, leg.to.role.company]),
+    [['B', 'C']],
+  );
+  assert.equal(
+    buildWorkJourney([role('A', '2020', 180), role('B', '2021', -180)]).markers.length,
+    1,
+  );
+  assert.equal(
+    buildWorkJourney([role('A', '2020', 0, 90), role('B', '2021', 120, 90)]).markers.length,
+    1,
+  );
 });
 
 test('offices take coordinate precedence while city-only roles retain their coordinates and labels', () => {
-  const city = { latitude: 44.2312, longitude: -76.486, countryCode: 'CA', regionCode: 'ON', city: 'Kingston' };
+  const city = {
+    latitude: 44.2312,
+    longitude: -76.486,
+    countryCode: 'CA',
+    regionCode: 'ON',
+    city: 'Kingston',
+  };
   const office = { address: '123 Main Street', latitude: 44.232, longitude: -76.487 };
   const experience = [
-    { ...role('Office', '2020'), location: 'Kingston, Ontario, Canada', place: { ...city, office } },
+    {
+      ...role('Office', '2020'),
+      location: 'Kingston, Ontario, Canada',
+      place: { ...city, office },
+    },
     { ...role('City', '2021'), location: 'Kingston, Ontario, Canada', place: city },
   ];
   const original = structuredClone(experience);
   const journey = buildWorkJourney(experience);
-  assert.deepEqual(journey.stops.map((stop) => stop.coordinates), [[office.longitude, office.latitude], [city.longitude, city.latitude]]);
-  assert.deepEqual(journey.stops.map((stop) => stop.role.location), ['Kingston, Ontario, Canada', 'Kingston, Ontario, Canada']);
+  assert.deepEqual(
+    journey.stops.map((stop) => stop.coordinates),
+    [
+      [office.longitude, office.latitude],
+      [city.longitude, city.latitude],
+    ],
+  );
+  assert.deepEqual(
+    journey.stops.map((stop) => stop.role.location),
+    ['Kingston, Ontario, Canada', 'Kingston, Ontario, Canada'],
+  );
   assert.deepEqual(experience, original);
   assert.equal(journey.legs.length, 1);
   assert.equal(journey.unmappedCount, 0);
@@ -69,11 +137,23 @@ test('different offices in the same city produce distinct markers and a directed
   const city = { latitude: 44.2312, longitude: -76.486, countryCode: 'CA', city: 'Kingston' };
   const first = { address: '123 Main Street', latitude: 44.232, longitude: -76.487 };
   const second = { address: '456 Main Street', latitude: 44.233, longitude: -76.488 };
-  const journey = buildWorkJourney([first, second, second].map((office, index) => ({
-    ...role(String(index), String(2020 + index)), place: { ...city, office },
-  })));
-  assert.deepEqual(journey.markers.map((marker) => marker.coordinates), [[first.longitude, first.latitude], [second.longitude, second.latitude]]);
-  assert.deepEqual(journey.markers.map((marker) => marker.stops.map((stop) => stop.index)), [[0], [1, 2]]);
+  const journey = buildWorkJourney(
+    [first, second, second].map((office, index) => ({
+      ...role(String(index), String(2020 + index)),
+      place: { ...city, office },
+    })),
+  );
+  assert.deepEqual(
+    journey.markers.map((marker) => marker.coordinates),
+    [
+      [first.longitude, first.latitude],
+      [second.longitude, second.latitude],
+    ],
+  );
+  assert.deepEqual(
+    journey.markers.map((marker) => marker.stops.map((stop) => stop.index)),
+    [[0], [1, 2]],
+  );
   assert.equal(journey.legs.length, 1);
   assert.deepEqual(interpolateJourneyLeg(journey.legs[0]!, 0), [first.longitude, first.latitude]);
   assert.deepEqual(interpolateJourneyLeg(journey.legs[0]!, 1), [second.longitude, second.latitude]);
@@ -83,17 +163,33 @@ test('malformed offices passed directly to the journey stay unmapped and break a
   const office = { address: '123 Main Street', latitude: 44.232, longitude: -76.487 };
   const city = { latitude: 44.2312, longitude: -76.486, countryCode: 'CA', city: 'Kingston' };
   const invalidPlaces: unknown[] = [
-    ...[null, '', [], {}, { address: office.address }, { latitude: 44, longitude: -76 },
-      { ...office, address: ' \n ' }, { ...office, address: 'a'.repeat(501) },
-      { ...office, latitude: 91 }, { ...office, latitude: -91 }, { ...office, longitude: 181 }, { ...office, longitude: -181 },
-      { ...office, latitude: NaN }, { ...office, longitude: Infinity }, { ...office, latitude: '44' },
+    ...[
+      null,
+      '',
+      [],
+      {},
+      { address: office.address },
+      { latitude: 44, longitude: -76 },
+      { ...office, address: ' \n ' },
+      { ...office, address: 'a'.repeat(501) },
+      { ...office, latitude: 91 },
+      { ...office, latitude: -91 },
+      { ...office, longitude: 181 },
+      { ...office, longitude: -181 },
+      { ...office, latitude: NaN },
+      { ...office, longitude: Infinity },
+      { ...office, latitude: '44' },
       { ...office, unexpected: true },
     ].map((invalid) => ({ ...city, office: invalid })),
-    { ...city, city: undefined, office }, { ...city, city: ' ', office },
+    { ...city, city: undefined, office },
+    { ...city, city: ' ', office },
   ];
   for (const place of invalidPlaces) {
-    const journey = buildWorkJourney([role('Before', '2019', 0),
-      { ...role('Invalid office', '2020'), place: place as JourneyExperience['place'] }, role('After', '2021', 30)]);
+    const journey = buildWorkJourney([
+      role('Before', '2019', 0),
+      { ...role('Invalid office', '2020'), place: place as JourneyExperience['place'] },
+      role('After', '2021', 30),
+    ]);
     assert.equal(journey.stops[1]!.coordinates, null);
     assert.equal(journey.unmappedCount, 1);
     assert.equal(journey.markers.length, 2);
@@ -110,19 +206,41 @@ test('antimeridian travel takes the short great-circle arc; antipodes have no in
   assert.equal(antipodes.legs.length, 0);
   assert.equal(antipodes.ambiguousCount, 1);
   const near = buildWorkJourney([role('A', '2020', 0), role('B', '2021', 179.99, 0.01)]);
-  for (let step = 0; step <= 100; step++) assert.ok(interpolateJourneyLeg(near.legs[0]!, step / 100).every(Number.isFinite));
+  for (let step = 0; step <= 100; step++)
+    assert.ok(interpolateJourneyLeg(near.legs[0]!, step / 100).every(Number.isFinite));
 });
 
 test('equal start dates do not imply direction; invalid chronology does not fabricate a sequence', () => {
   const tied = buildWorkJourney([role('A', '2020', 0), role('B', '2020-01', 20)]);
   assert.equal(tied.legs.length, 0);
   assert.equal(tied.ambiguousCount, 1);
-  const tiedRoles = [role('Before', '2019', -20), role('A', '2020', 0), role('B', '2020-01', 20), role('After', '2021', 40)];
-  assert.equal(buildWorkJourney(tiedRoles).legs.length, 0, 'Do not pick arbitrary arrival or departure roles around tied dates.');
+  const tiedRoles = [
+    role('Before', '2019', -20),
+    role('A', '2020', 0),
+    role('B', '2020-01', 20),
+    role('After', '2021', 40),
+  ];
+  assert.equal(
+    buildWorkJourney(tiedRoles).legs.length,
+    0,
+    'Do not pick arbitrary arrival or departure roles around tied dates.',
+  );
   assert.equal(buildWorkJourney([...tiedRoles].reverse()).legs.length, 0);
-  assert.equal(buildWorkJourney([role('Before', '2019', -20), role('Unknown month', '2020', 0), role('Known month', '2020-07', 20), role('After', '2021', 40)]).legs.length, 0,
-    'A year-only date must not be assumed to precede a known month in that year.');
-  const invalid = buildWorkJourney([role('A', '2019', 0), role('B', 'unknown', 10), role('C', '2021', 30)]);
+  assert.equal(
+    buildWorkJourney([
+      role('Before', '2019', -20),
+      role('Unknown month', '2020', 0),
+      role('Known month', '2020-07', 20),
+      role('After', '2021', 40),
+    ]).legs.length,
+    0,
+    'A year-only date must not be assumed to precede a known month in that year.',
+  );
+  const invalid = buildWorkJourney([
+    role('A', '2019', 0),
+    role('B', 'unknown', 10),
+    role('C', '2021', 30),
+  ]);
   assert.equal(invalid.legs.length, 0);
   assert.equal(invalid.markers.length, 3);
   assert.equal(invalid.hasInvalidDates, true);
@@ -130,7 +248,11 @@ test('equal start dates do not imply direction; invalid chronology does not fabr
 });
 
 test('globe hydrates without eager fetching, retries map errors, selects shared roles, and respects motion preferences', async () => {
-  const experience = [role('First', '2020-02', 0), role('Shared', '2021-03', 0), role('Latest', '2022-04', 30)];
+  const experience = [
+    role('First', '2020-02', 0),
+    role('Shared', '2021-03', 0),
+    role('Latest', '2022-04', 30),
+  ];
   const element = createElement(ExperienceGlobe, { experience });
   const html = renderToString(element);
   assert.match(html, /February, 2020/);
@@ -140,21 +262,44 @@ test('globe hydrates without eager fetching, retries map errors, selects shared 
   const observers: { callback: IntersectionObserverCallback; target?: Element }[] = [];
   class MockObserver {
     entry: { callback: IntersectionObserverCallback; target?: Element };
-    constructor(callback: IntersectionObserverCallback) { this.entry = { callback }; observers.push(this.entry); }
-    observe(target: Element): void { this.entry.target = target; }
-    disconnect(): void { /* The test dispatches visibility explicitly. */ }
+    constructor(callback: IntersectionObserverCallback) {
+      this.entry = { callback };
+      observers.push(this.entry);
+    }
+    observe(target: Element): void {
+      this.entry.target = target;
+    }
+    disconnect(): void {
+      /* The test dispatches visibility explicitly. */
+    }
   }
   let fetches = 0;
-  const geography = { type: 'Topology', arcs: [[[0, 0], [0, 10], [10, 0], [0, 0]]], objects: {
-    countries: { type: 'GeometryCollection', geometries: [{ type: 'Polygon', arcs: [[0]] }] },
-    admin1: { type: 'MultiLineString', arcs: [[0]] },
-  } };
-  for (const [key, value] of Object.entries({ window, document: window.document, IntersectionObserver: MockObserver,
-    IS_REACT_ACT_ENVIRONMENT: true, fetch: async () => {
+  const geography = {
+    type: 'Topology',
+    arcs: [
+      [
+        [0, 0],
+        [0, 10],
+        [10, 0],
+        [0, 0],
+      ],
+    ],
+    objects: {
+      countries: { type: 'GeometryCollection', geometries: [{ type: 'Polygon', arcs: [[0]] }] },
+      admin1: { type: 'MultiLineString', arcs: [[0]] },
+    },
+  };
+  for (const [key, value] of Object.entries({
+    window,
+    document: window.document,
+    IntersectionObserver: MockObserver,
+    IS_REACT_ACT_ENVIRONMENT: true,
+    fetch: async () => {
       fetches++;
       if (fetches === 1) throw new Error('Offline');
       return new Response(JSON.stringify(geography), { status: 200 });
-    } })) {
+    },
+  })) {
     descriptors.set(key, Object.getOwnPropertyDescriptor(globalThis, key));
     Object.defineProperty(globalThis, key, { value, configurable: true });
   }
@@ -166,43 +311,86 @@ test('globe hydrates without eager fetching, retries map errors, selects shared 
   let now = 0;
   let sequence = 0;
   const frames = new Map<number, FrameRequestCallback>();
-  window.requestAnimationFrame = (callback) => { frames.set(++sequence, callback); return sequence; };
-  window.cancelAnimationFrame = (id) => { frames.delete(id); };
+  window.requestAnimationFrame = (callback) => {
+    frames.set(++sequence, callback);
+    return sequence;
+  };
+  window.cancelAnimationFrame = (id) => {
+    frames.delete(id);
+  };
   const host = window.document.getElementById('test')!;
   const svg = host.querySelector('svg')!;
   let visible = true;
-  svg.getBoundingClientRect = () => ({ top: visible ? 10 : -510, bottom: visible ? 510 : -10, width: 500, height: 500, x: 0, y: 10, left: 0, right: 500, toJSON: () => ({}) });
-  const lines = (): string | null => host.querySelector('svg > g[fill="none"] > path')!.getAttribute('d');
-  const button = (label: string): HTMLButtonElement => [...host.querySelectorAll('button')].find((item) => item.getAttribute('aria-label') === label || item.textContent === label)!;
+  svg.getBoundingClientRect = () => ({
+    top: visible ? 10 : -510,
+    bottom: visible ? 510 : -10,
+    width: 500,
+    height: 500,
+    x: 0,
+    y: 10,
+    left: 0,
+    right: 500,
+    toJSON: () => ({}),
+  });
+  const lines = (): string | null =>
+    host.querySelector('svg > g[fill="none"] > path')!.getAttribute('d');
+  const button = (label: string): HTMLButtonElement =>
+    [...host.querySelectorAll('button')].find(
+      (item) => item.getAttribute('aria-label') === label || item.textContent === label,
+    )!;
   const advance = async (): Promise<void> => {
-    await act(async () => { now += 60; const pending = [...frames.values()]; frames.clear(); pending.forEach((callback) => callback(now)); });
+    await act(async () => {
+      now += 60;
+      const pending = [...frames.values()];
+      frames.clear();
+      pending.forEach((callback) => callback(now));
+    });
   };
   let root: ReturnType<typeof hydrateRoot> | undefined;
   try {
-    await act(async () => { root = hydrateRoot(host, element); });
+    await act(async () => {
+      root = hydrateRoot(host, element);
+    });
     assert.equal(fetches, 0, 'Loading waits until the outer frame is near the viewport.');
     const initial = lines();
-    await advance(); await advance();
+    await advance();
+    await advance();
     assert.notEqual(lines(), initial, 'Idle rotation changes the projection.');
     await act(async () => {
       const observer = observers.find((entry) => entry.target?.tagName === 'DIV')!;
-      observer.callback([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver);
+      observer.callback(
+        [{ isIntersecting: true } as IntersectionObserverEntry],
+        {} as IntersectionObserver,
+      );
     });
     assert.equal(fetches, 1);
     assert.match(host.textContent!, /Map couldn’t load/);
-    assert.equal(host.querySelectorAll('option').length, 3, 'Map failure leaves every role selectable.');
+    assert.equal(
+      host.querySelectorAll('option').length,
+      3,
+      'Map failure leaves every role selectable.',
+    );
     await act(async () => button('Retry map').click());
     assert.equal(fetches, 2);
     assert.doesNotMatch(host.textContent!, /couldn’t load/);
     const select = host.querySelector('select')!;
-    await act(async () => { select.value = '1'; select.dispatchEvent(new window.Event('change', { bubbles: true })); });
+    await act(async () => {
+      select.value = '1';
+      select.dispatchEvent(new window.Event('change', { bubbles: true }));
+    });
     assert.match(host.querySelector('[aria-atomic="true"]')!.textContent!, /Shared.*March, 2021/);
     assert.equal(frames.size, 0, 'Selecting a role pauses the camera.');
     await act(async () => button('Resume globe animation').click());
     assert.equal(frames.size, 1);
-    await act(async () => { visible = false; window.dispatchEvent(new window.Event('scroll')); });
+    await act(async () => {
+      visible = false;
+      window.dispatchEvent(new window.Event('scroll'));
+    });
     assert.equal(frames.size, 0);
-    await act(async () => { visible = true; window.dispatchEvent(new window.Event('scroll')); });
+    await act(async () => {
+      visible = true;
+      window.dispatchEvent(new window.Event('scroll'));
+    });
     assert.equal(frames.size, 1);
     await act(async () => {
       Object.defineProperty(window.document, 'hidden', { value: true, configurable: true });
@@ -212,7 +400,8 @@ test('globe hydrates without eager fetching, retries map errors, selects shared 
     await act(async () => {
       Object.defineProperty(window.document, 'hidden', { value: false, configurable: true });
       window.document.dispatchEvent(new window.Event('visibilitychange'));
-      reduced = true; preference.dispatchEvent(new window.Event('change'));
+      reduced = true;
+      preference.dispatchEvent(new window.Event('change'));
     });
     assert.equal(frames.size, 0);
     const beforeManual = lines();
@@ -224,14 +413,32 @@ test('globe hydrates without eager fetching, retries map errors, selects shared 
     assert.notEqual(host.querySelector('svg > path')!.getAttribute('d'), beforeZoom);
     await act(async () => button('Reset').click());
     assert.equal(host.querySelector('svg > path')!.getAttribute('d'), beforeZoom);
-    assert.equal(button('Street level').disabled, false, 'A mapped role can open its city directly.');
+    assert.equal(
+      button('Street level').disabled,
+      false,
+      'A mapped role can open its city directly.',
+    );
     for (let step = 0; step < 7; step++) await act(async () => button('Zoom in').click());
-    assert.equal(host.querySelector('svg[aria-label="Interactive work-history globe"]'), null, 'Zooming beyond the globe opens detailed mapping.');
-    assert.ok(button('Back to globe'), 'Loading or unavailable street assets never trap the visitor.');
+    assert.equal(
+      host.querySelector('svg[aria-label="Interactive work-history globe"]'),
+      null,
+      'Zooming beyond the globe opens detailed mapping.',
+    );
+    assert.ok(
+      button('Back to globe'),
+      'Loading or unavailable street assets never trap the visitor.',
+    );
     await act(async () => button('Back to globe').click());
     assert.ok(host.querySelector('svg[aria-label="Interactive work-history globe"]'));
-    assert.equal(button('Zoom in').disabled, false, 'Returning to the globe keeps street zoom available.');
-    await act(async () => { root?.unmount(); root = undefined; });
+    assert.equal(
+      button('Zoom in').disabled,
+      false,
+      'Returning to the globe keeps street zoom available.',
+    );
+    await act(async () => {
+      root?.unmount();
+      root = undefined;
+    });
     assert.equal(frames.size, 0);
   } finally {
     if (root) await act(async () => root?.unmount());

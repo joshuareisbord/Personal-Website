@@ -20,7 +20,11 @@ test('experience dates show full months without guessing missing or malformed mo
 
 async function mountPicker(props: Omit<MonthPickerProps, 'onChange'>) {
   const dom = new JSDOM('<div id="test"></div>', { pretendToBeVisual: true });
-  const globals = { window: dom.window, document: dom.window.document, IS_REACT_ACT_ENVIRONMENT: true };
+  const globals = {
+    window: dom.window,
+    document: dom.window.document,
+    IS_REACT_ACT_ENVIRONMENT: true,
+  };
   const previous = new Map<string, PropertyDescriptor | undefined>();
   for (const [key, value] of Object.entries(globals)) {
     previous.set(key, Object.getOwnPropertyDescriptor(globalThis, key));
@@ -33,34 +37,75 @@ async function mountPicker(props: Omit<MonthPickerProps, 'onChange'>) {
   let submissions = 0;
   function Harness() {
     const [value, setValue] = useState(props.value);
-    return createElement('form', { onSubmit: (event) => { event.preventDefault(); submissions++; } },
-      createElement('fieldset', null, createElement(MonthPicker, { ...props, value, onChange: (next) => { changes.push(next); setValue(next); } })),
-      createElement('button', { type: 'submit' }, 'Save'));
+    return createElement(
+      'form',
+      {
+        onSubmit: (event) => {
+          event.preventDefault();
+          submissions++;
+        },
+      },
+      createElement(
+        'fieldset',
+        null,
+        createElement(MonthPicker, {
+          ...props,
+          value,
+          onChange: (next) => {
+            changes.push(next);
+            setValue(next);
+          },
+        }),
+      ),
+      createElement('button', { type: 'submit' }, 'Save'),
+    );
   }
-  await act(async () => { root.render(createElement(Harness)); });
+  await act(async () => {
+    root.render(createElement(Harness));
+  });
   const button = (text: string): HTMLButtonElement => {
-    const found = [...host.querySelectorAll('button')].find((element) => element.textContent?.trim() === text || element.getAttribute('aria-label') === text);
+    const found = [...host.querySelectorAll('button')].find(
+      (element) =>
+        element.textContent?.trim() === text || element.getAttribute('aria-label') === text,
+    );
     assert.ok(found, `Missing button: ${text}`);
     return found;
   };
-  const click = async (text: string): Promise<void> => { await act(async () => { button(text).click(); }); };
+  const click = async (text: string): Promise<void> => {
+    await act(async () => {
+      button(text).click();
+    });
+  };
   const press = async (element: Element, key: string): Promise<void> => {
-    await act(async () => { element.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key, bubbles: true })); });
+    await act(async () => {
+      element.dispatchEvent(new dom.window.KeyboardEvent('keydown', { key, bubbles: true }));
+    });
   };
   const setYear = async (value: string): Promise<void> => {
     const input = host.querySelector<HTMLInputElement>('input[inputmode="numeric"]');
     assert.ok(input);
     await act(async () => {
-      Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value')?.set?.call(input, value);
+      Object.getOwnPropertyDescriptor(dom.window.HTMLInputElement.prototype, 'value')?.set?.call(
+        input,
+        value,
+      );
       input.dispatchEvent(new dom.window.Event('input', { bubbles: true }));
     });
   };
   return {
-    host, dom, changes, button, click, press, setYear,
+    host,
+    dom,
+    changes,
+    button,
+    click,
+    press,
+    setYear,
     submissions: () => submissions,
     form: host.querySelector('form')!,
     close: async () => {
-      await act(async () => { root.unmount(); });
+      await act(async () => {
+        root.unmount();
+      });
       dom.window.close();
       for (const [key, descriptor] of previous) {
         if (descriptor) Object.defineProperty(globalThis, key, descriptor);
@@ -85,7 +130,9 @@ test('browsing years preserves legacy precision until a month is explicitly sele
     assert.deepEqual(view.changes, ['2024-03']);
     assert.equal(view.dom.window.document.activeElement, view.button('Start date: March, 2024'));
     assert.equal(view.submissions(), 0, 'Picker buttons must never submit the form.');
-  } finally { await view.close(); }
+  } finally {
+    await view.close();
+  }
 });
 
 test('month buttons support arrow navigation and retain an explicit selected state', async () => {
@@ -102,23 +149,34 @@ test('month buttons support arrow navigation and retain an explicit selected sta
     await view.press(view.button('January, 2024'), 'End');
     assert.equal(view.dom.window.document.activeElement, view.button('December, 2024'));
     assert.deepEqual(view.changes, []);
-  } finally { await view.close(); }
+  } finally {
+    await view.close();
+  }
 });
 
 test('required dates block native submission, then a selected month allows it', async () => {
   const view = await mountPicker({ label: 'Start date', value: '' });
   try {
-    await act(async () => { view.form.requestSubmit(); });
+    await act(async () => {
+      view.form.requestSubmit();
+    });
     assert.equal(view.submissions(), 0);
     assert.match(view.host.querySelector('[role="alert"]')?.textContent ?? '', /Choose/);
-    assert.equal(view.dom.window.document.activeElement, view.button('Start date: Choose month and year'));
+    assert.equal(
+      view.dom.window.document.activeElement,
+      view.button('Start date: Choose month and year'),
+    );
     await view.click('Start date: Choose month and year');
     await view.setYear('2024');
     await view.click('March, 2024');
-    await act(async () => { view.form.requestSubmit(); });
+    await act(async () => {
+      view.form.requestSubmit();
+    });
     assert.equal(view.submissions(), 1);
     assert.equal(view.host.querySelector('[role="alert"]'), null);
-  } finally { await view.close(); }
+  } finally {
+    await view.close();
+  }
 });
 
 test('optional end dates can be cleared to Present and inherit disabled fieldsets', async () => {
@@ -133,13 +191,22 @@ test('optional end dates can be cleared to Present and inherit disabled fieldset
     await view.click('Clear date / Present');
     assert.deepEqual(view.changes, ['']);
     assert.ok(view.button('End date: Present'));
-    await act(async () => { view.form.requestSubmit(); });
+    await act(async () => {
+      view.form.requestSubmit();
+    });
     assert.equal(view.submissions(), 1);
-  } finally { await view.close(); }
+  } finally {
+    await view.close();
+  }
 });
 
 test('minimum dates constrain month selection and native validation without inventing precision', async () => {
-  const view = await mountPicker({ label: 'End date', value: '2024', required: false, min: '2024-03' });
+  const view = await mountPicker({
+    label: 'End date',
+    value: '2024',
+    required: false,
+    min: '2024-03',
+  });
   try {
     assert.equal(view.form.checkValidity(), true, 'Unknown end month may overlap the start month.');
     await view.click('End date: 2024');
@@ -154,11 +221,17 @@ test('minimum dates constrain month selection and native validation without inve
     await view.setYear('2025');
     await view.click('January, 2025');
     assert.deepEqual(view.changes, ['2025-01']);
-  } finally { await view.close(); }
+  } finally {
+    await view.close();
+  }
   const invalid = await mountPicker({ label: 'End date', value: '2024-02', min: '2024-03' });
   try {
-    await act(async () => { invalid.form.requestSubmit(); });
+    await act(async () => {
+      invalid.form.requestSubmit();
+    });
     assert.equal(invalid.submissions(), 0);
     assert.match(invalid.host.querySelector('[role="alert"]')?.textContent ?? '', /March, 2024/);
-  } finally { await invalid.close(); }
+  } finally {
+    await invalid.close();
+  }
 });

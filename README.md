@@ -10,7 +10,13 @@ The visual references are [Anduril](https://www.anduril.com/) and [Inversion](ht
 
 Updated career wording and a profile photo still await owner input. The repository seed currently has `photo: null` and an empty experience list; it does not invent a portrait or new work history. These can be supplied through the owner CMS, with the seed/SEO update distinction described below.
 
-Contact social links use the GitHub and LinkedIn SVG paths imported from Material Design Icons (`@mdi/js`), with accessible link names and large touch targets. The unused PNG logos have been removed. Only the two imported icons are bundled; no icon font or external icon request is needed.
+Contact social links and decorative link arrows use SVG paths imported from Material Design Icons (`@mdi/js`), with accessible link names and large touch targets. SVG arrows remain monochrome on mobile rather than depending on emoji fonts. The unused PNG logos have been removed. Only the imported paths are bundled; no icon font or external icon request is needed.
+
+## Working on the code
+
+See [Code structure and maintenance](docs/architecture.md) for the entry points, feature modules, content flow, and behavior to preserve. Application components, hooks, data models, build scripts, tests, and Vite configuration use TypeScript. Strict checking includes unchecked array access and exact optional properties; public data is validated at runtime with Zod before it reaches the UI.
+
+Run `npm run format` after editing. Prettier expands JSX and compound expressions consistently, and `.editorconfig` supplies matching editor defaults. `npm run verify` checks formatting as well as types, tests, and the production build, so pull requests cannot silently return to compressed code.
 
 ## Local development
 
@@ -35,10 +41,12 @@ Open [localhost:5173/](http://localhost:5173/). Without Firebase configuration t
 | Command | Purpose |
 | --- | --- |
 | `npm run check` | TypeScript validation |
+| `npm run format` | Format TypeScript, TSX, CSS, scripts, and tests |
+| `npm run format:check` | Check formatting without changing files |
 | `npm test` | Unit and render tests |
 | `npm run test:rules` | Firestore and Storage rules tests in the isolated `demo-personal-website` emulator project |
 | `npm run build` | Vite browser/SSR builds, static prerendering, and output verification |
-| `npm run verify` | Check, unit/render tests, and build |
+| `npm run verify` | Formatting, TypeScript, unit/render tests, and build |
 | `npm run preview` | Preview built assets on port 4173 |
 | `npm run hosting:preview` | Preview built assets with Firebase routing on port 5002 |
 | `npm run cms:emulators` | Start local demo Auth (9099), Firestore (8080), and Storage (9199) |

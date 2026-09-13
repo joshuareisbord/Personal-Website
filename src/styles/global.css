@@ -1,10 +1,10 @@
-@import "tailwindcss";
-@import "react-easy-crop/react-easy-crop.css";
-@import "@fontsource/barlow/latin-400.css";
-@import "@fontsource/barlow/latin-500.css";
-@import "@fontsource/barlow/latin-600.css";
-@import "@fontsource/barlow/latin-800.css";
-@import "@fontsource/ibm-plex-mono/latin-400.css";
+@import 'tailwindcss';
+@import 'react-easy-crop/react-easy-crop.css';
+@import '@fontsource/barlow/latin-400.css';
+@import '@fontsource/barlow/latin-500.css';
+@import '@fontsource/barlow/latin-600.css';
+@import '@fontsource/barlow/latin-800.css';
+@import '@fontsource/ibm-plex-mono/latin-400.css';
 
 @theme {
   --font-sans: 'Barlow', sans-serif;
@@ -26,7 +26,9 @@
   --color-gray-50: #f4f3ee;
 }
 
-html { scroll-behavior: smooth; }
+html {
+  scroll-behavior: smooth;
+}
 body {
   margin: 0;
   background: var(--color-paper);
@@ -35,8 +37,17 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
-a:focus-visible, button:focus-visible { outline: 2px solid currentColor; outline-offset: 5px; }
-::selection { background: var(--color-ink); color: var(--color-paper); }
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 5px;
+}
+::selection {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
+  html {
+    scroll-behavior: auto;
+  }
 }
