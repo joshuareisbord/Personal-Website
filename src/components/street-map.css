@@ -9,10 +9,14 @@
   touch-action: pan-y;
 }
 
-.street-map .leaflet-tile-pane { filter: grayscale(1); }
+.street-map .leaflet-tile-pane {
+  filter: grayscale(1);
+}
 
 /* Override Leaflet's combined drag/pinch selector before the first touch starts. */
-.street-map .street-map-surface.leaflet-container.leaflet-touch { touch-action: pan-y; }
+.street-map .street-map-surface.leaflet-container.leaflet-touch {
+  touch-action: pan-y;
+}
 
 .street-map .leaflet-control-attribution {
   margin: 0;
@@ -22,8 +26,14 @@
   font-size: 0.75rem;
 }
 
-.street-map .leaflet-control-attribution a { color: var(--color-ink); text-decoration: underline; }
-.street-map .street-map-marker { background: transparent; border: 0; }
+.street-map .leaflet-control-attribution a {
+  color: var(--color-ink);
+  text-decoration: underline;
+}
+.street-map .street-map-marker {
+  background: transparent;
+  border: 0;
+}
 
 .street-map-marker-button {
   position: relative;
@@ -53,20 +63,30 @@
   background: var(--color-paper);
 }
 
-.street-map-marker-button[aria-pressed="true"] {
+.street-map-marker-button[aria-pressed='true'] {
   color: var(--color-paper);
   font-weight: 600;
 }
 
-.street-map-marker-button[aria-pressed="true"]::before {
+.street-map-marker-button[aria-pressed='true']::before {
   background: var(--color-ink);
   outline: 2px solid var(--color-paper);
   outline-offset: 2px;
 }
 
-.street-map-control { background: var(--color-paper); color: var(--color-ink); font-family: var(--font-mono); }
-.street-map-control:hover:enabled { background: var(--color-ink); color: var(--color-paper); }
-.street-map-control:disabled { opacity: 0.5; cursor: default; }
+.street-map-control {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-mono);
+}
+.street-map-control:hover:enabled {
+  background: var(--color-ink);
+  color: var(--color-paper);
+}
+.street-map-control:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
 
 .street-map .street-map-surface:focus-visible,
 .street-map .street-map-marker-button:focus-visible {
@@ -75,7 +95,20 @@
   box-shadow: 0 0 0 6px var(--color-paper);
 }
 
-.street-map-route { animation: street-map-flow 1.2s linear infinite; animation-play-state: paused; }
-.street-map-surface[data-motion="running"] .street-map-route { animation-play-state: running; }
-@keyframes street-map-flow { to { stroke-dashoffset: -22; } }
-@media (prefers-reduced-motion: reduce) { .street-map .street-map-route { animation: none; } }
+.street-map-route {
+  animation: street-map-flow 1.2s linear infinite;
+  animation-play-state: paused;
+}
+.street-map-surface[data-motion='running'] .street-map-route {
+  animation-play-state: running;
+}
+@keyframes street-map-flow {
+  to {
+    stroke-dashoffset: -22;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .street-map .street-map-route {
+    animation: none;
+  }
+}

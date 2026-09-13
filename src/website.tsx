@@ -1,36 +1,41 @@
-import { useEffect, useState, type ReactElement } from 'react';
+import { useEffect, type ReactElement } from 'react';
 
 import { Layout } from './layouts/main';
 import type { SiteContent } from './lib/content';
 import { Home } from './pages/home';
 import { OwnerAccess } from './components/owner-access';
+import { LinkArrow } from './components/link-arrow';
+import { usePublishedContent } from './hooks/use-published-content';
 
-interface Props { pathname: string; content: SiteContent; year: number; }
+interface AppProps {
+  pathname: string;
+  content: SiteContent;
+  year: number;
+}
 
 /** Select the two public pages without introducing a client router. */
-export function App({ pathname, content: initial, year }: Props): ReactElement {
-  const [content, setContent] = useState(initial);
+export function App({ pathname, content: initial, year }: AppProps): ReactElement {
   const isHome = pathname === '/' || pathname === '/index.html';
+  const content = usePublishedContent(initial, isHome);
   useEffect(() => {
-    if (!isHome) return;
-    let disposed = false;
-    let unsubscribe: (() => void) | undefined;
-    void import('./lib/cms').then(({ getCms }) => {
-      if (disposed) return;
-      unsubscribe = getCms()?.subscribeContent((snapshot) => {
-        if (snapshot) setContent(snapshot.content);
-      }, () => console.warn('Published content unavailable; retaining the last validated page.'));
-    }).catch(() => console.warn('Content service unavailable; showing the saved page.'));
-    return () => { disposed = true; unsubscribe?.(); };
-  }, [isHome]);
-  useEffect(() => { if (isHome) document.title = content.profile.name; }, [content.profile.name, isHome]);
+    if (isHome) document.title = content.profile.name;
+  }, [content.profile.name, isHome]);
   if (isHome) {
-    return <Home content={content} year={year} ownerControls={<OwnerAccess fallback={initial} />} />;
+    return (
+      <Home content={content} year={year} ownerControls={<OwnerAccess fallback={initial} />} />
+    );
   }
-  return <Layout year={year}>
-    <section className="flex min-h-screen flex-col items-center justify-center gap-6 px-4 text-center">
-      <h1 className="text-6xl font-semibold tracking-tight">Page not found</h1>
-      <a href="/" className="border-b border-ink px-6 py-3 font-mono text-sm">Return home ↗</a>
-    </section>
-  </Layout>;
+  return (
+    <Layout year={year}>
+      <section className="flex min-h-screen flex-col items-center justify-center gap-6 px-4 text-center">
+        <h1 className="text-6xl font-semibold tracking-tight">Page not found</h1>
+        <a
+          href="/"
+          className="inline-flex items-center gap-2 border-b border-ink px-6 py-3 font-mono text-sm"
+        >
+          Return home <LinkArrow />
+        </a>
+      </section>
+    </Layout>
+  );
 }
