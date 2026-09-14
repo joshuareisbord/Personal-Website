@@ -3,7 +3,8 @@ export const site = {
   experienceTitle: 'Work Experience',
   contactTitle: 'Contact',
   contactIntro: 'Got any question? Want to see more?',
-  tagline: 'Software Engineer passionate about creating new and innovative technologies used by people everyday.',
+  tagline:
+    'Software Engineer passionate about creating new and innovative technologies used by people everyday.',
   about: [
     "My name is Joshua Reisbord, a dedicated Software Engineer holding a Bachelor of Computing, Computer Science (BCOMP Honors) from Queen's University in Kingston, Ontario. Throughout my academic and professional journey, I have honed my skills in various programming languages and technologies.",
     'My passion for programming took root at a young age when I began creating websites featuring Club Penguin items and their locations. This enthusiasm grew as I started modifying maps in Halo 3 and hosting Minecraft servers using the popular Bukkit utility, which enabled plugin usage. These experiences allowed me to acquire foundational knowledge in server administration, object oriented programing, and the Linux command line, setting the stage for my future pursuits in software engineering.',

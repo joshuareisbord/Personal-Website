@@ -1,2 +1,4 @@
-export const controlClass = 'mt-2 min-h-12 w-full min-w-0 border border-muted bg-paper px-3 py-3 text-base leading-relaxed text-ink placeholder:text-muted focus:border-ink focus-visible:outline-2 focus-visible:outline-ink disabled:cursor-wait';
-export const buttonClass = 'inline-flex min-h-12 items-center justify-center border border-ink px-4 py-2 font-mono text-xs text-ink hover:bg-ink hover:text-paper focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-50';
+export const controlClass =
+  'mt-2 min-h-12 w-full min-w-0 border border-muted bg-paper px-3 py-3 text-base leading-relaxed text-ink placeholder:text-muted focus:border-ink focus-visible:outline-2 focus-visible:outline-ink disabled:cursor-wait';
+export const buttonClass =
+  'inline-flex min-h-12 items-center justify-center border border-ink px-4 py-2 font-mono text-xs text-ink hover:bg-ink hover:text-paper focus-visible:outline-ink disabled:cursor-not-allowed disabled:opacity-50';

@@ -10,11 +10,13 @@ export default defineConfig(({ isSsrBuild }) => ({
   build: {
     sourcemap: false,
     copyPublicDir: !isSsrBuild,
-    rolldownOptions: isSsrBuild ? {} : {
-      input: {
-        index: fileURLToPath(new URL('./index.html', import.meta.url)),
-        '404': fileURLToPath(new URL('./404.html', import.meta.url)),
-      },
-    },
+    rolldownOptions: isSsrBuild
+      ? {}
+      : {
+          input: {
+            index: fileURLToPath(new URL('./index.html', import.meta.url)),
+            '404': fileURLToPath(new URL('./404.html', import.meta.url)),
+          },
+        },
   },
 }));

@@ -7,6 +7,9 @@ import { initialContent } from './data/content';
 export function renderPage(pathname: string, year: number): { html: string; title: string } {
   return {
     html: renderToString(<App pathname={pathname} content={initialContent} year={year} />),
-    title: pathname === '/' ? initialContent.profile.name : `Page not found — ${initialContent.profile.name}`,
+    title:
+      pathname === '/'
+        ? initialContent.profile.name
+        : `Page not found — ${initialContent.profile.name}`,
   };
 }

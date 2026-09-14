@@ -8,7 +8,13 @@ const environment = await initializeTestEnvironment({
 });
 try {
   await environment.withSecurityRulesDisabled(async (context) => {
-    await setDoc(doc(context.firestore(), 'websiteOwners/joshuareisbord@gmail.com'), { enabled: true });
+    await setDoc(doc(context.firestore(), 'websiteOwners/joshuareisbord@gmail.com'), {
+      enabled: true,
+    });
   });
-  console.log('Local demo owner enabled: joshuareisbord@gmail.com. No production data was changed.');
-} finally { await environment.cleanup(); }
+  console.log(
+    'Local demo owner enabled: joshuareisbord@gmail.com. No production data was changed.',
+  );
+} finally {
+  await environment.cleanup();
+}

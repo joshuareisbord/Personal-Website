@@ -1,7 +1,17 @@
 /** English month names shared by the picker and public experience dates. */
 export const EXPERIENCE_MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
 ] as const;
 
 /** Accept the profile's year or year-month contract without normalizing precision. */
